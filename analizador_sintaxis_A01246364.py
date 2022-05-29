@@ -1,11 +1,8 @@
 import analizador_lexico_A01246364 as myLexer
-#import math
 import ply.yacc as yacc
 
-debug = True
-tokens = myLexer.tokens + myLexer.reserved
-#errorCounter = 0
-
+tokens = myLexer.tokens
+#Resolver NOT
 
 # To resolve ambiguity, especially in expression grammars,
 # yacc.py allows individual tokens to be assigned a precedence 
@@ -24,397 +21,200 @@ precedence = (
 
 def p_program(p):
     '''
-    program : MAIN LPAR RPAR LBRK body RBRK
+    program : MAIN LPAR RPAR LBRK estatutos RBRK
     '''
-#   Programa -> main(){ Variables + Funciones + Estatutos }
-###   Body Incuye Variables, Funciones y Estatutos
-
-def p_body(p):
-    '''
-    body    : body variable
-            | body estatutos
-            | body expresionAritmeticaID SEMICOLON
-            | body ID ASSIGN asignacion SEMICOLON
-            | body ID LCAS INTV RCAS ASSIGN asignacion SEMICOLON
-            | body ID LCAS INTV RCAS LCAS INTV RCAS ASSIGN asignacion SEMICOLON
-            | body ID LCAS INTV RCAS LCAS INTV RCAS LCAS INTV RCAS ASSIGN asignacion SEMICOLON
-            | body ID LCAS ID RCAS ASSIGN asignacion SEMICOLON
-            | body ID LCAS ID RCAS LCAS ID RCAS ASSIGN asignacion SEMICOLON
-            | body ID LCAS ID RCAS LCAS ID RCAS LCAS ID RCAS ASSIGN asignacion SEMICOLON
-            | empty
-    '''
-#   Nos dirige a como se define una variable
-#   Nos dirige a como se definen las funciones
-#   Nos dirife a como se definen los estatutos (FOR, WHILE, IF)
-#   Puede ser una programa vacio
-###   El body que se antepone indica que se pueden definir mas variables, funciones y estatutos
-
-def p_variable(p):
-    '''
-    variable : ID DOUBLEPOINT INT ASSIGN INTV SEMICOLON
-             | ID DOUBLEPOINT FLT ASSIGN FLTV SEMICOLON
-             | ID DOUBLEPOINT STRING ASSIGN STRINGV SEMICOLON
-             | ID LCAS INTV RCAS DOUBLEPOINT type SEMICOLON
-             | ID LCAS INTV RCAS LCAS INTV RCAS DOUBLEPOINT type SEMICOLON
-             | ID LCAS INTV RCAS LCAS INTV RCAS LCAS INTV RCAS DOUBLEPOINT type SEMICOLON
-    '''
-#   Declaracion de variables tipo INT       -> ID : tipoINT     = Valor ;
-#   Declaracion de variables tipo FLT       -> ID : tipoFLT     = Valor ;
-#   Declaracion de variables tipo STRING    -> ID : tipoSTRING  = "Valor" ;
-#   Declaracion de variables tipo Matriz 1D -> ID[valor_int] : tipo = Valor;
-#   Declaracion de variables tipo Matriz 2D -> ID[valor_int][valor_int] : tipo = Valor;
-#   Declaracion de variables tipo Matriz 3D -> ID[valor_int][valor_int][valor_int] : tipo = Valor;
-
-def p_variableFor(p):
-    '''
-    variableFor : ID DOUBLEPOINT INT ASSIGN INTV
-    '''
-#   Declaracion de variables tipo INT       -> ID : tipoINT     = Valor ;
-
+                                                          # main(){ estatutos }
 def p_estatutos(p):
     '''
-    estatutos : fFor
-              | fWhile
-              | fIf
+    estatutos : dec_Var estatutos
+              | act_Var estatutos
+              | dec_Arr estatutos
+              | act_Arr estatutos
+              | f_write estatutos
+              | f_read  estatutos
+              | e_if    estatutos
+              | e_while estatutos
+              | e_for   estatutos
+              | empty
+              
     '''
-#   Nos redirige a la funcion de un ciclo FOR
-#   Nos redirige a la funcion de un ciclo WHILE
-#   Nos redirige a la funcion de un ciclo IF
-#   Nos redirige a la funcion de asignacion
-def p_asignacion(p):
+                                                          # Declaracion de variables /
+                                                          # Actualizacion de variables /
+                                                          # Declaracion de variables tipo arreglo /
+                                                          # Actualizacion de variables tipo arreglo /
+                                                          # Funciones predefinida  - Write (Equivalente al Print) /
+                                                          # Funciones predefinida  - Read /
+                                                          # Estatuto IF /
+                                                          # Estatuto WHILE / 
+                                                          # Estatuto FOR
+                                                          # Posibilidad de Crear funciones               | c_func  estatutos
+                                                          # El programa MAIN puede estar vacio (definicion empty) /
+#   DECLARACION ESTATUTOS   IF    #
+def p_estatuto_if(p):
     '''
-    asignacion : variablesInicializadas 
-               | variablesInicializadas PLUS variablesInicializadas 
-               | variablesInicializadas MINUS variablesInicializadas 
-               | variablesInicializadas TIMES variablesInicializadas 
-               | variablesInicializadas DIVIDE variablesInicializadas 
-               | variablesInicializadas POWER variablesInicializadas 
-    '''
-
-def p_variablesInicializadas(p):
-    '''
-    variablesInicializadas : ID
-             | ID LCAS INTV RCAS
-             | ID LCAS INTV RCAS LCAS INTV RCAS
-             | ID LCAS INTV RCAS LCAS INTV RCAS LCAS INTV RCAS
-             | ID LCAS ID RCAS
-             | ID LCAS ID RCAS LCAS ID RCAS
-             | ID LCAS ID RCAS LCAS ID RCAS LCAS ID RCAS
-    '''
-def p_fIf(p):
-    '''
-    fIf : IF LPAR expresionLogica RPAR THEN body ENDIF
-        | IF LPAR expresionLogica RPAR THEN body else ENDIF
-    '''
-#   IF (x < 3) THEN cuerpo ENDIF
-#   IF (x < 3) THEN cuerpo ELSEif cuerpo ENDIF
-
-def p_else(p):
-    '''
-    else : ELSEIF LPAR expresionLogica RPAR THEN 
+    e_if : IF LPAR comp_expression RPAR THEN estatutos ENDIF
+         | IF LPAR comp_expression RPAR THEN estatutos ELSEIF LPAR comp_expression RPAR THEN estatutos ENDIF
+         
     '''
 
-
-def p_expresionLogica(p):
+#   DECLARACION ESTATUTOS   WHILE    #
+def p_estatuto_while(p):
     '''
-    expresionLogica    : ID GTEQ ID
-                       | ID LTEQ ID
-                       | ID GT ID
-                       | ID LT ID
-                       | INTV GTEQ INTV
-                       | INTV LTEQ INTV
-                       | INTV GT INTV
-                       | INTV LT INTV
-                       | INTV GTEQ ID
-                       | INTV LTEQ ID
-                       | INTV GT ID
-                       | INTV LT ID
-                       | ID GTEQ INTV
-                       | ID LTEQ INTV
-                       | ID GT INTV
-                       | ID LT INTV
-                       | expresionAritmetica GTEQ INTV
-                       | expresionAritmetica LTEQ INTV
-                       | expresionAritmetica GT INTV
-                       | expresionAritmetica LT INTV
-                       | INTV GTEQ expresionAritmetica
-                       | INTV LTEQ expresionAritmetica
-                       | INTV GT expresionAritmetica
-                       | INTV LT expresionAritmetica
-                       | expresionAritmetica GTEQ ID
-                       | expresionAritmetica LTEQ ID
-                       | expresionAritmetica GT ID
-                       | expresionAritmetica LT ID
-                       | ID GTEQ expresionAritmetica
-                       | ID LTEQ expresionAritmetica
-                       | ID GT expresionAritmetica
-                       | ID LT expresionAritmetica
-                       | expresionAritmetica GTEQ expresionAritmetica
-                       | expresionAritmetica LTEQ expresionAritmetica
-                       | expresionAritmetica GT expresionAritmetica
-                       | expresionAritmetica LT expresionAritmetica
-                       | ID EQUAL ID
-                       | INTV EQUAL INTV
-                       | INTV EQUAL ID
-                       | ID EQUAL INTV
-                       | expresionAritmetica EQUAL INTV
-                       | INTV EQUAL expresionAritmetica
-                       | expresionAritmetica EQUAL ID
-                       | ID EQUAL expresionAritmetica
-                       | expresionAritmetica EQUAL expresionAritmetica
-                       | ID NOT ID
-                       | INTV NOT INTV
-                       | INTV NOT ID
-                       | ID NOT INTV
-                       | expresionAritmetica NOT INTV
-                       | INTV NOT expresionAritmetica
-                       | expresionAritmetica NOT ID
-                       | ID NOT expresionAritmetica
-                       | expresionAritmetica NOT expresionAritmetica
+    e_while : DO estatutos WHILE LPAR comp_expression RPAR ENDWHILE
     '''
 
-def p_expresionLogicaFORWHILE(p):
+#   DECLARACION ESTATUTOS   FOR    #
+def p_estatuto_for(p):
     '''
-    expresionLogicaFORWHILE : ID GTEQ ID
-                       | ID LTEQ ID
-                       | ID GT ID
-                       | ID LT ID
-                       | INTV GTEQ INTV
-                       | INTV LTEQ INTV
-                       | INTV GT INTV
-                       | INTV LT INTV
-                       | INTV GTEQ ID
-                       | INTV LTEQ ID
-                       | INTV GT ID
-                       | INTV LT ID
-                       | ID GTEQ INTV
-                       | ID LTEQ INTV
-                       | ID GT INTV
-                       | ID LT INTV
-                       | expresionAritmetica GTEQ INTV
-                       | expresionAritmetica LTEQ INTV
-                       | expresionAritmetica GT INTV
-                       | expresionAritmetica LT INTV
-                       | INTV GTEQ expresionAritmetica
-                       | INTV LTEQ expresionAritmetica
-                       | INTV GT expresionAritmetica
-                       | INTV LT expresionAritmetica
-                       | expresionAritmetica GTEQ ID
-                       | expresionAritmetica LTEQ ID
-                       | expresionAritmetica GT ID
-                       | expresionAritmetica LT ID
-                       | ID GTEQ expresionAritmetica
-                       | ID LTEQ expresionAritmetica
-                       | ID GT expresionAritmetica
-                       | ID LT expresionAritmetica
-                       | expresionAritmetica GTEQ expresionAritmetica
-                       | expresionAritmetica LTEQ expresionAritmetica
-                       | expresionAritmetica GT expresionAritmetica
-                       | expresionAritmetica LT expresionAritmetica
-    '''
-#   x >= y
-#   x <= y
-#   x > y
-#   x < y
-#   10 >= 5
-#   10 <= 5
-#   10 > 5
-#   10 < 5
-#   10 >= x
-#   10 <= x
-#   10 > x
-#   10 < x
-#   x >= 5
-#   x <= 5
-#   x > 5
-#   x < 5
-
-
-def p_fWhile(p):
-    '''
-    fWhile : DO THEN body WHILE LPAR expresionLogicaFORWHILE RPAR ENDWHILE
-    '''
-#   Declaracion -> DO THEN cuerpo WHILE ( x < 10 )ENDWHILE    
-
-def p_fFor(p):
-    '''
-    fFor    : FOR LPAR variableFor SEMICOLON expresionLogicaFORWHILE SEMICOLON expresionAritmeticaID RPAR THEN body ENDFOR
-    '''
-#   Declaracion -> FOR (x : int = 0 ; x < 10 ; x++){ cuerpo }
-
-def p_expresionAritmetica(p):
-    '''
-    expresionAritmetica : suma
-                        | resta
+    e_for : FOR LPAR dec_Var comp_expression SEMICOLON incdec RPAR THEN estatutos ENDFOR
     '''
 
-def p_division(p):
+#   ESTRUCTURA DE INCREMENTO Y DECREMENTO
+def p_incdec(p):
     '''
-    division : INTV DIVIDE INTV
-             | ID INTV DIVIDE INTV
-             | INTV DIVIDE ID
-             | ID DIVIDE ID
-             | ID LCAS INTV RCAS DIVIDE INTV
-             | INTV DIVIDE ID LCAS INTV RCAS
-             | ID LCAS INTV RCAS DIVIDE ID LCAS INTV RCAS
-             | ID LCAS INTV RCAS LCAS INTV RCAS DIVIDE INTV
-             | INTV DIVIDE ID LCAS INTV RCAS LCAS INTV RCAS
-             | ID LCAS INTV RCAS LCAS INTV RCAS DIVIDE ID LCAS INTV RCAS LCAS INTV RCAS     
-             | ID LCAS INTV RCAS LCAS INTV RCAS LCAS INTV RCAS DIVIDE INTV
-             | INTV DIVIDE ID LCAS INTV RCAS LCAS INTV RCAS LCAS INTV RCAS
-             | ID LCAS INTV RCAS LCAS INTV RCAS LCAS INTV RCAS DIVIDE ID LCAS INTV RCAS LCAS INTV RCAS LCAS INTV RCAS
-             | ID LCAS ID RCAS DIVIDE INTV
-             | INTV DIVIDE ID LCAS ID RCAS
-             | ID LCAS ID RCAS DIVIDE ID LCAS ID RCAS
-             | ID LCAS ID RCAS LCAS ID RCAS DIVIDE INTV
-             | INTV DIVIDE ID LCAS ID RCAS LCAS ID RCAS
-             | ID LCAS ID RCAS LCAS ID RCAS DIVIDE ID LCAS ID RCAS LCAS ID RCAS     
-             | ID LCAS ID RCAS LCAS ID RCAS LCAS ID RCAS DIVIDE INTV
-             | INTV DIVIDE ID LCAS ID RCAS LCAS ID RCAS LCAS ID RCAS
-             | ID LCAS ID RCAS LCAS ID RCAS LCAS ID RCAS DIVIDE ID LCAS ID RCAS LCAS ID RCAS LCAS ID RCAS
+    incdec : ID INC
+           | ID DEC
     '''
 
+#def p_estatuto_elseif(p):
+#    '''
+#    e_elseif : ELSEIF LPAR expression RPAR THEN estatutos e_elseif
+#    '''
 
-def p_multiplicacion(p):
+#   DECLARACION DE VARIABLES    #
+def p_dec_Var(p):
     '''
-    multiplicacion : INTV TIMES INTV
-                   | ID INTV TIMES INTV
-                   | INTV TIMES ID
-                   | ID TIMES ID
-                   | ID LCAS INTV RCAS TIMES INTV
-                   | INTV TIMES ID LCAS INTV RCAS
-                   | ID LCAS INTV RCAS TIMES ID LCAS INTV RCAS
-                   | ID LCAS INTV RCAS LCAS INTV RCAS TIMES INTV
-                   | INTV TIMES ID LCAS INTV RCAS LCAS INTV RCAS
-                   | ID LCAS INTV RCAS LCAS INTV RCAS TIMES ID LCAS INTV RCAS LCAS INTV RCAS     
-                   | ID LCAS INTV RCAS LCAS INTV RCAS LCAS INTV RCAS TIMES INTV
-                   | INTV TIMES ID LCAS INTV RCAS LCAS INTV RCAS LCAS INTV RCAS
-                   | ID LCAS INTV RCAS LCAS INTV RCAS LCAS INTV RCAS TIMES ID LCAS INTV RCAS LCAS INTV RCAS LCAS INTV RCAS
-                   | ID LCAS ID RCAS TIMES INTV
-                   | INTV TIMES ID LCAS ID RCAS
-                   | ID LCAS ID RCAS TIMES ID LCAS ID RCAS
-                   | ID LCAS ID RCAS LCAS ID RCAS TIMES INTV
-                   | INTV TIMES ID LCAS ID RCAS LCAS ID RCAS
-                   | ID LCAS ID RCAS LCAS ID RCAS TIMES ID LCAS ID RCAS LCAS ID RCAS     
-                   | ID LCAS ID RCAS LCAS ID RCAS LCAS ID RCAS TIMES INTV
-                   | INTV TIMES ID LCAS ID RCAS LCAS ID RCAS LCAS ID RCAS
-                   | ID LCAS ID RCAS LCAS ID RCAS LCAS ID RCAS TIMES ID LCAS ID RCAS LCAS ID RCAS LCAS ID RCAS
+    dec_Var : ID DOUBLEPOINT type ASSIGN expression SEMICOLON
+            | ID DOUBLEPOINT type SEMICOLON
     '''
+                                                          # NOMBRE_VAR : INT/STRING/FLOAT  = V_int/V_string/V_float/variable ;
+                                                          # NOMBRE_VAR : INT/FLOAT/STRING ;
+                                                          # igualar a una expresion
+#   ACTUALIZACION DE VARIABLES  #
+def p_act_Var(p):
+    '''
+    act_Var : ID ASSIGN expression SEMICOLON
+    '''
+                                                          # NOMBRE_VAR = V_int/V_string/V_float/variable ;
 
-def p_expresionAritmeticaID(p):
+#   DECLARACION DE VARIABLES TIPO ARREGLO     #
+def p_dec_Arr(p):
     '''
-    expresionAritmeticaID : suma
-                          | resta
-                          | multiplicacion
-                          | division
-                          | incremento
-                          | decremento
+    dec_Arr : ID dimension DOUBLEPOINT type SEMICOLON
     '''
-#   Dirigimos la rutina a las expresiones aritmeticas de
-#   Suma
-#   Incremento
-#   Resta
-#   Decremento
+                                                          # NOMBRE_VAR DIMENSION : INT/FLOAT/STRING ; Aun no se inicializan con un valor
 
-def p_suma(p):
+#   ACTUALIZACION DE VARIABLES TIPO ARREGLO     #
+def p_act_Arr(p):
     '''
-    suma : INTV PLUS INTV
-         | ID INTV PLUS INTV
-         | INTV PLUS ID
-         | ID PLUS ID
-         | ID LCAS INTV RCAS PLUS INTV
-         | INTV PLUS ID LCAS INTV RCAS
-         | ID LCAS INTV RCAS PLUS ID LCAS INTV RCAS
-         | ID LCAS INTV RCAS LCAS INTV RCAS PLUS INTV
-         | INTV PLUS ID LCAS INTV RCAS LCAS INTV RCAS
-         | ID LCAS INTV RCAS LCAS INTV RCAS PLUS ID LCAS INTV RCAS LCAS INTV RCAS     
-         | ID LCAS INTV RCAS LCAS INTV RCAS LCAS INTV RCAS PLUS INTV
-         | INTV PLUS ID LCAS INTV RCAS LCAS INTV RCAS LCAS INTV RCAS
-         | ID LCAS INTV RCAS LCAS INTV RCAS LCAS INTV RCAS PLUS ID LCAS INTV RCAS LCAS INTV RCAS LCAS INTV RCAS
-         | ID LCAS ID RCAS PLUS INTV
-         | INTV PLUS ID LCAS ID RCAS
-         | ID LCAS ID RCAS PLUS ID LCAS ID RCAS
-         | ID LCAS ID RCAS LCAS ID RCAS PLUS INTV
-         | INTV PLUS ID LCAS ID RCAS LCAS ID RCAS
-         | ID LCAS ID RCAS LCAS ID RCAS PLUS ID LCAS ID RCAS LCAS ID RCAS     
-         | ID LCAS ID RCAS LCAS ID RCAS LCAS ID RCAS PLUS INTV
-         | INTV PLUS ID LCAS ID RCAS LCAS ID RCAS LCAS ID RCAS
-         | ID LCAS ID RCAS LCAS ID RCAS LCAS ID RCAS PLUS ID LCAS ID RCAS LCAS ID RCAS LCAS ID RCAS
+    act_Arr : ID dimension ASSIGN expression SEMICOLON
     '''
-#   Definicion de la suma, donde se pueden sumar 2 o mas terminos
-#   Suma de valor + variables
-#   Suma de valores + arreglo de una dimension (dimension constante)
-#   Suma de valores + arreglo de dos dimensiones (dimension constante)
-#   Suma de valores + arreglo de tres dimensiones (dimension constante)
-#   Suma de valores + arreglo de una dimension (dimension ID)
-#   Suma de valores + arreglo de dos dimensiones (dimension ID)
-#   Suma de valores + arreglo de tres dimensiones (dimension ID)
+                                                          # NOMBRE_VAR DIMENSION = V_int/V_string/V_float/variable ;
 
-def p_incremento(p):
+#   DECLARACION - DIMENSIONES POSIBLES Y SU COTENIDO
+def p_dimension(p):
     '''
-    incremento : ID INC
+    dimension : LCAS expression RCAS
+              | LCAS expression RCAS LCAS expression RCAS
+              | LCAS expression RCAS LCAS expression RCAS LCAS expression RCAS
     '''
-#   Definicion del incremento, donde se puede aumentar el valor de una variable
+                                                          # Dimensiones con indices, tanto de tipo entero o variables
+                                                          # ARR[V_int/ID], ARR[V_int/ID][V_int/ID], ARR[V_int/ID][V_int/ID][V_int/ID]
 
-def p_resta(p):
-    '''
-    resta : INTV MINUS INTV
-         | ID INTV MINUS INTV
-         | INTV MINUS ID
-         | ID MINUS ID
-         | ID LCAS INTV RCAS MINUS INTV
-         | INTV MINUS ID LCAS INTV RCAS
-         | ID LCAS INTV RCAS MINUS ID LCAS INTV RCAS
-         | ID LCAS INTV RCAS LCAS INTV RCAS MINUS INTV
-         | INTV MINUS ID LCAS INTV RCAS LCAS INTV RCAS
-         | ID LCAS INTV RCAS LCAS INTV RCAS MINUS ID LCAS INTV RCAS LCAS INTV RCAS     
-         | ID LCAS INTV RCAS LCAS INTV RCAS LCAS INTV RCAS MINUS INTV
-         | INTV MINUS ID LCAS INTV RCAS LCAS INTV RCAS LCAS INTV RCAS
-         | ID LCAS INTV RCAS LCAS INTV RCAS LCAS INTV RCAS MINUS ID LCAS INTV RCAS LCAS INTV RCAS LCAS INTV RCAS
-         | ID LCAS ID RCAS MINUS INTV
-         | INTV MINUS ID LCAS ID RCAS
-         | ID LCAS ID RCAS MINUS ID LCAS ID RCAS
-         | ID LCAS ID RCAS LCAS ID RCAS MINUS INTV
-         | INTV MINUS ID LCAS ID RCAS LCAS ID RCAS
-         | ID LCAS ID RCAS LCAS ID RCAS MINUS ID LCAS ID RCAS LCAS ID RCAS     
-         | ID LCAS ID RCAS LCAS ID RCAS LCAS ID RCAS MINUS INTV
-         | INTV MINUS ID LCAS ID RCAS LCAS ID RCAS LCAS ID RCAS
-         | ID LCAS ID RCAS LCAS ID RCAS LCAS ID RCAS MINUS ID LCAS ID RCAS LCAS ID RCAS LCAS ID RCAS
-    '''
-    
-#   Definicion de la resta, donde se pueden restar 2 o mas terminos
-#   Resta de valor + variables
-#   Resta de valores + arreglo de una dimension (dimension constante)
-#   Resta de valores + arreglo de dos dimensiones (dimension constante)
-#   Resta de valores + arreglo de tres dimensiones (dimension constante)
-#   Resta de valores + arreglo de una dimension (dimension ID)
-#   Resta de valores + arreglo de dos dimensiones (dimension ID)
-#   Resta de valores + arreglo de tres dimensiones (dimension ID)
-
-def p_decremento(p):
-    '''
-    decremento : ID DEC
-    '''
-#   Definicion del decremento, donde se puede restar el valor de una variable
-
+#   TIPOS DE DATOS    #
 def p_type(p):
     '''
-    type    : STRING
-            | INT
-            | FLT
+    type : INT
+         | FLT
+         | STRING
+    '''
+                                                          # Tipos de datos -> INT, FLT, STRING 
+
+#   TIPOS DE VALORES ASIGNABLES   #
+#Modificar
+#def p_value(p):
+#    '''
+#    value : INTV
+#          | FLTV
+#          | STRINGV
+#          | expression
+#          | ID
+#    '''
+                                                          # Tipos de datos asignables -> INT, FLT, STRING y variables
+
+#   FUNCION WRITE (PRINT)   #
+def p_write(p):
+    '''
+    f_write : WRITE LPAR expression RPAR SEMICOLON
+    '''
+                                                          # WRITE(ID/V_string/V_int,V_float)
+
+#   FUNCION READ   #
+def p_read(p):
+    '''
+    f_read : READ LPAR expression RPAR SEMICOLON
+    '''
+                                                          # READ(ID/V_string/V_int,V_float)
+
+#   Expresiones ARITMETICAS   #
+def p_aritmetic_expression(p):
+    '''
+    expression : expression PLUS expression
+               | expression MINUS expression
+               | expression TIMES expression
+               | expression DIVIDE expression
+               | constante
     '''
 
-def p_empty(p):
-     'empty :'
-     pass
+#   Expresiones COMPARATIVAS   #
+def p_comp_expression(p):
+    '''
+    comp_expression : expression EQUAL expression
+                    | expression GT expression
+                    | expression LT expression
+                    | expression GTEQ expression
+                    | expression LTEQ expression
+                    | expression NOTEQ expression
+                    | expression AND expression
+                    | expression OR expression
+                    | expression NOT expression
+    '''
+#   Expresiones LOGICAS         #
+#def p_logicas(p):
+#    '''
+#    logicas : AND
+#            | OR
+#            | NOT
+#    '''
 
+#   CONSTANTES NUMERICAS para ser utilizadas en las expresiones
+def p_constante_num(p):
+    '''
+    constante : INTV
+              | FLTV
+    '''
+
+#   CONSTANTES DE ID para ser utilizadas en las expresiones, como variables y arreglos
+def p_constante_ID(p):
+    '''
+    constante : ID
+              | ID dimension
+    '''
+
+#   DEFINICION DE EMPTY     #
+def p_empty(p):
+    'empty :'
+    pass
+                                                          # Revisa un conjunto vacio
+
+#   DEFINICION DE ERROR     #
 def p_error(p):
     print("Syntax error found")
     print(p)
-
+                                                          # Indica donde se ecuentra un error de sintaxis
 parser = yacc.yacc()
 try:
-    with open("Programa_correcto2.txt",  encoding="utf8") as f:
+    with open("Programa_Prueba.txt",  encoding="utf8") as f:
         file = f.read()
     parser.parse(file)
 except EOFError:
