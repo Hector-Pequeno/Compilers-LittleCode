@@ -26,15 +26,15 @@ def p_program(p):
                                                           # main(){ estatutos }
 def p_estatutos(p):
     '''
-    estatutos : dec_Var estatutos
-              | act_Var estatutos
-              | dec_Arr estatutos
-              | act_Arr estatutos
-              | f_write estatutos
-              | f_read  estatutos
-              | e_if    estatutos
-              | e_while estatutos
-              | e_for   estatutos
+    estatutos : estatutos dec_Var 
+              | estatutos act_Var 
+              | estatutos dec_Arr 
+              | estatutos act_Arr 
+              | estatutos f_write 
+              | estatutos f_read  
+              | estatutos e_if    
+              | estatutos e_while 
+              | estatutos e_for   
               | empty
               
     '''
