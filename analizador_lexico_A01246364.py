@@ -19,12 +19,21 @@ reserved = [
 ]
 tokens = [
     'ID',             # Tipos de datos 
-    'INTV', 'FLTV','STRINGV',
-    'PLUS', 'MINUS', 'DIVIDE', 'TIMES', 'POWER',    # Operadores
+    'INTV', 'FLTV',
+    #'STRINGV',
+    'PLUS', 'MINUS', 'DIVIDE', 'TIMES',
+    # 'POWER',    # Operadores
     'LPAR', 'RPAR', 'LCAS', 'RCAS', 'LBRK', 'RBRK', # Parentesis
-    'SEMICOLON', 'COMA', 'DOUBLEPOINT', 'QM',        # Caracteres especiales
+    'SEMICOLON', 
+    #'COMA', 
+    'DOUBLEPOINT', 
+    #'QM',        # Caracteres especiales
     'GT', 'LT', 'GTEQ', 'LTEQ', 'EQUAL', 'NOT',     # Comparaciones
-    'AND', 'OR', 'DEC', 'INC','ASSIGN',
+    'AND', 'OR', 
+    'DEC', 
+    'INC',
+    'ASSIGN', 'NOTEQ',
+    'WRITE', 'READ',
 
 ] 
 tokens = tokens + reserved
@@ -36,6 +45,7 @@ t_GT =  r'\>'
 t_LT =  r'\<'
 t_GTEQ =  r'\>\='
 t_LTEQ =  r'\<\='
+t_NOTEQ =  r'\!\='
 t_AND =  r'\&'
 t_OR =  r'\|'
 t_NOT =  r'\!'
@@ -43,7 +53,7 @@ t_PLUS = r'\+'
 t_MINUS = r'\-'
 t_DIVIDE = r'\/'
 t_TIMES = r'\*'
-t_POWER = r'\^'
+#t_POWER = r'\^'
 t_LPAR = r'\('
 t_RPAR = r'\)'
 t_LCAS = r'\['
@@ -52,7 +62,7 @@ t_LBRK = r'\{'
 t_RBRK = r'\}'
 t_DOUBLEPOINT = r'\:'
 t_SEMICOLON = r'\;'
-t_COMA = r'\,'
+#t_COMA = r'\,'
 t_INC = r'\+\+'
 t_DEC = r'\-\-'
 #T_QM = r'\"'
@@ -108,6 +118,11 @@ def t_DO(t):
     t.type = 'DO'
     return t
 
+def t_TO(t):
+    r'TO'
+    t.type = 'TO'
+    return t
+
 def t_ENDIF(t):
     r'ENDIF'
     t.type = 'ENDIF'
@@ -153,6 +168,16 @@ def t_FOR(t):
     t.type = 'FOR'
     return t 
 
+def t_WRITE(t):
+    r'WRITE'
+    t.type = 'WRITE'
+    return t
+
+def t_READ(t):
+    r'READ'
+    t.type = 'READ'
+    return t
+
 def t_MAIN(t):
     r'MAIN'
     t.type = 'MAIN'
@@ -175,10 +200,10 @@ def t_error(t):
 # Build the lexer
 lexer = lex.lex()
 lexer.input(Programa.read())
-while True:
-    tok = lexer.token()
-    print(tok)
-    if not tok: 
-        break
+#while True:
+#    tok = lexer.token()
+#    print(tok)
+#    if not tok: 
+#        break
 Programa.close()
 #print(tok)
