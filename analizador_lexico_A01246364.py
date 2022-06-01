@@ -10,31 +10,23 @@
 import ply.lex as lex
 #import ply.yacc as yacc
 
-Programa = open('Programa_Prueba.txt','r')
+Programa = open('Programa_incorrecto1.txt','r') 
 
 reserved = [
     'INT', 'FLT','STRING','MAIN',
     'IF', 'WHILE', 'DO', 'FOR', 'ELSEIF','ENDIF',
-    'THEN', 'ENDFOR', 'ENDWHILE',
+    'THEN', 'ENDFOR', 'ENDWHILE','WRITE', 'READ',
 ]
 tokens = [
-    'ID',             # Tipos de datos 
-    'INTV', 'FLTV',
-    #'STRINGV',
-    'PLUS', 'MINUS', 'DIVIDE', 'TIMES',
-    # 'POWER',    # Operadores
-    'LPAR', 'RPAR', 'LCAS', 'RCAS', 'LBRK', 'RBRK', # Parentesis
-    'SEMICOLON', 
-    #'COMA', 
-    'DOUBLEPOINT', 
-    #'QM',        # Caracteres especiales
-    'GT', 'LT', 'GTEQ', 'LTEQ', 'EQUAL', 'NOT',     # Comparaciones
-    'AND', 'OR', 
-    'DEC', 
-    'INC',
-    'ASSIGN', 'NOTEQ',
-    'WRITE', 'READ',
-
+    'ID',                                                   # Identificadores 
+    'INTV', 'FLTV', 'STRINGV',                              # Tipos de datos
+    'PLUS', 'MINUS', 'DIVIDE', 'TIMES',                     # Operadores
+    'LPAR', 'RPAR', 'LCAS', 'RCAS', 'LBRK', 'RBRK',         # Parentesis
+    'SEMICOLON', 'DOUBLEPOINT',                             # Puntuaciones
+    'GT', 'LT', 'GTEQ', 'LTEQ', 'EQUAL', 'NOT','NOTEQ',     # Comparaciones
+    'AND', 'OR',                                            # Logicos  
+    'DEC', 'INC',                                           # Incremento y decremento
+    'ASSIGN',                                               # Asignacion
 ] 
 tokens = tokens + reserved
 
@@ -62,10 +54,8 @@ t_LBRK = r'\{'
 t_RBRK = r'\}'
 t_DOUBLEPOINT = r'\:'
 t_SEMICOLON = r'\;'
-#t_COMA = r'\,'
 t_INC = r'\+\+'
 t_DEC = r'\-\-'
-#T_QM = r'\"'
 
 # Ignored characters
 t_ignore = r' '
@@ -80,10 +70,6 @@ def t_ID(t):
         t.type = 'ID'
     return t    # Return token object
 
-#def t_STR(t):
-#     r'STR'
-#     t.type = 'STR'
-#     return t
 def t_STRING(t):
     r'STRING'
     t.type = 'STRING'
@@ -199,7 +185,7 @@ def t_error(t):
     
 # Build the lexer
 lexer = lex.lex()
-lexer.input(Programa.read())
+#lexer.input(Programa.read())
 #while True:
 #    tok = lexer.token()
 #    print(tok)
