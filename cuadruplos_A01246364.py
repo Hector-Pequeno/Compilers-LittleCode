@@ -1,4 +1,3 @@
-from unittest import result
 import analizador_lexico_A01246364 as myLexer
 import ply.yacc as yacc
 import sys as compilador
@@ -10,12 +9,15 @@ Simbol_Index = 0       # Posición inicial de la tabla de simbolos
 tabla_de_simbolos = {} # Lista vacia, donde seran guardados nuestros simbolos
 
 #   CUADRUPLOS      #
+
+pila_operandos = [] # Arreglo de operandos
+temporales = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12', 'T13', 'T14', 'T15', 'T16', 'T17', 'T18', 'T19', 'T20', 'T21', 'T22', 'T23', 'T24'] #Lista de temporales
+
 def cuadruplos(operation, operand1, operand2, result):
                 # Formato de armado de cuadruplos
     cuadruplo = [operation, operand1, operand2, result] # Armamos el cuadruplo
-    print("Este es el cuadruplo -> ",cuadruplo) #Imprimimos el cuadruplo
-pila_operandos = [] # Arreglo de operandos
-temporales = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'] #Lista de temporales
+    print("Cuadruplo -> ",cuadruplo) #Imprimimos el cuadruplo
+    print(pila_operandos)
 
 # To resolve ambiguity, especially in expression grammars,
 # yacc.py allows individual tokens to be assigned a precedence 
@@ -57,6 +59,7 @@ def p_estatutos(p):
               | estatutos e_while 
               | estatutos e_for   
               | estatutos c_func  
+              | estatutos comp_expression SEMICOLON
               | empty
               
     '''
@@ -100,6 +103,14 @@ def p_incdec(p):
     simbolo = p[1] # Obtenemos el simbolo
     if not p[1] in tabla_de_simbolos:   # Verificamos si el simbolo se encuentra declarado, para actualizarlo
         compilador.exit(f"{simbolo} is not declared!")
+    operand2 = pila_operandos.pop()
+    operand1 = pila_operandos.pop()
+    result   = simbolo     
+    pila_operandos.append(result)
+    if(  p[2] == '++'):
+        cuadruplos('++',operand1, operand2, result)
+    elif(p[2] == '--'):
+        cuadruplos('--',operand1, operand2, result)
                                                           # Nos indica como se ejecuta un incremento i++, i--
 def p_dec_Var(p):
     '''
@@ -117,11 +128,16 @@ def p_dec_Var(p):
     if simbolo in tabla_de_simbolos:
         compilador.exit(f"{simbolo} Already declared!")
     else:
+        # Tabla de simbolos
         tabla_de_simbolos[simbolo] = {} # Nos permite crear un diccionario de tipo NESTED
         tabla_de_simbolos[simbolo]["Index"] = Simbol_Index # Guardamos la posicion en la tabla de simbolos
         tabla_de_simbolos[simbolo]["Type"] = tipo # Guardamos en el diccionario el tipo de la variable
         Simbol_Index = Simbol_Index + 1 # Incrementamos la posicion de la tabla de simbolos
-        
+        # Cuadruplos
+        operand1 = pila_operandos.pop()
+        result   = simbolo     
+        pila_operandos.append(result)
+        cuadruplos('=',operand1," ", result)
 #   ACTUALIZACION DE VARIABLES  #
 def p_act_Var(p):
     '''
@@ -131,6 +147,13 @@ def p_act_Var(p):
     simbolo = p[1] # Obtenemos el simbolo
     if not p[1] in tabla_de_simbolos:   # Verificamos si el simbolo se encuentra declarado, para actualizarlo
         compilador.exit(f"{simbolo} is not declared!")
+    operand1 = pila_operandos.pop()
+    result   = simbolo
+    if not simbolo in pila_operandos:                     # Si ya existe en memoria, no lo volvemos a declarar. solo en asignacion
+        pila_operandos.append(result)
+        cuadruplos('=',operand1," ", result)
+    else:
+        cuadruplos('=',operand1," ", result)
 
 #   DECLARACION DE VARIABLES TIPO ARREGLO     #
 def p_dec_Arr(p):
@@ -146,11 +169,16 @@ def p_dec_Arr(p):
     if simbolo in tabla_de_simbolos:
         compilador.exit(f"{simbolo} Array Already declared!")
     else:
+        # Tabla de simbolos
         tabla_de_simbolos[simbolo] = {} # Nos permite crear un diccionario de tipo NESTED
         tabla_de_simbolos[simbolo]["Index"] = Simbol_Index # Guardamos la posicion en la tabla de simbolos
         tabla_de_simbolos[simbolo]["Type"] = tipo # Guardamos en el diccionario el tipo de la variable
         Simbol_Index = Simbol_Index + 1 # Incrementamos la posicion de la tabla de simbolos
-
+        # Cuadruplos
+        operand1 = pila_operandos.pop()
+        result   = simbolo     
+        pila_operandos.append(result)
+        cuadruplos('=',operand1," ", result)
 #   ACTUALIZACION DE VARIABLES TIPO ARREGLO     #
 def p_act_Arr(p):
     '''
@@ -160,7 +188,13 @@ def p_act_Arr(p):
     simbolo = p[1] # Obtenemos el simbolo
     if not p[1] in tabla_de_simbolos:   # Verificamos si el simbolo se encuentra declarado, para actualizarlo
         compilador.exit(f"{simbolo} array is not declared!")
-
+    operand1 = pila_operandos.pop()
+    result   = simbolo
+    if not simbolo in pila_operandos:     
+        pila_operandos.append(result)
+        cuadruplos('=',operand1," ", result)
+    else:
+        cuadruplos('=',operand1," ", result)
 #   DECLARACION - DIMENSIONES POSIBLES Y SU COTENIDO
 def p_dimension(p):
     '''
@@ -196,14 +230,21 @@ def p_read(p):
            | READ LPAR string_value RPAR SEMICOLON
     '''
                                                           # READ(ID/V_string/V_int,V_float)
-
+# Operaciones aritmeticas
 def p_suma_aritmetica(p):
     '''
     expression : expression PLUS expression 
     '''
+    #print("Operando 2 antes   = ",operand2)    
+    #print("Pila antes = ",pila_operandos)
     operand2 = pila_operandos.pop()
+    #print("Operando 2 despues = ",operand2)
+    #print("Operando 1 antes   = ",operand1)
     operand1 = pila_operandos.pop()
+    #print("Operando 1 despues = ",operand1)
+    #print("Operando result antes = ", result)
     result = temporales.pop()     
+    #print("Operando result despues = ", result)
     pila_operandos.append(result)
     cuadruplos('+',operand1, operand2, result)
 
@@ -247,24 +288,112 @@ def p_agrupar(p):
     '''
     p[0] = p[2]     # Nos quedamos con la expresion sin el parentesis
 
+def p_agrupar_logicos(p):
+    '''
+    constante : LPAR comp_expression RPAR
+    '''
+    p[0] = p[2]     # Nos quedamos con la expresion sin el parentesis
+
 #   Expresiones COMPARATIVAS   #
-def p_comp_expression(p):
+def p_comp_expression_equal(p):
     '''
     comp_expression : expression EQUAL expression
-                    | expression GT expression
-                    | expression LT expression
-                    | expression GTEQ expression
-                    | expression LTEQ expression
-                    | expression NOTEQ expression
-                    | expression logicas expression
     '''
+    operand2 = pila_operandos.pop()
+    operand1 = pila_operandos.pop()
+    result = temporales.pop()     
+    pila_operandos.append(result)
+    cuadruplos('==',operand1, operand2, result)
+
+def p_comp_expression_gt(p):
+    '''
+    comp_expression : expression GT expression
+    '''
+    operand2 = pila_operandos.pop()
+    operand1 = pila_operandos.pop()
+    result = temporales.pop()     
+    pila_operandos.append(result)
+    cuadruplos('>',operand1, operand2, result)
+
+def p_comp_expression_lt(p):
+    '''
+    comp_expression : expression LT expression
+    '''
+    operand2 = pila_operandos.pop()
+    operand1 = pila_operandos.pop()
+    result = temporales.pop()     
+    pila_operandos.append(result)
+    cuadruplos('<',operand1, operand2, result)
+
+def p_comp_expression_gteq(p):
+    '''
+    comp_expression : expression GTEQ expression
+    '''
+    operand2 = pila_operandos.pop()
+    operand1 = pila_operandos.pop()
+    result = temporales.pop()     
+    pila_operandos.append(result)
+    cuadruplos('>=',operand1, operand2, result)
+
+def p_comp_expression_lteq(p):
+    '''
+    comp_expression : expression LTEQ expression
+    '''
+    operand2 = pila_operandos.pop()
+    operand1 = pila_operandos.pop()
+    result = temporales.pop()     
+    pila_operandos.append(result)
+    cuadruplos('<=',operand1, operand2, result)
+
+def p_comp_expression_noteq(p):
+    '''
+    comp_expression : expression NOTEQ expression
+    '''
+    operand2 = pila_operandos.pop()
+    operand1 = pila_operandos.pop()
+    result = temporales.pop()     
+    pila_operandos.append(result)
+    cuadruplos('!=',operand1, operand2, result)
+
+def p_comp_expression_logicas(p):
+    '''
+    comp_expression : comp_expression logicas comp_expression
+    '''
+
 #   Expresiones LOGICAS         #
-def p_logicas(p):
-   '''
-    logicas : AND
-            | OR
-            | NOT
+def p_logicas_and(p):
     '''
+    logicas :  AND 
+    '''
+    operand2 = pila_operandos.pop()
+    operand1 = pila_operandos.pop()
+    result = temporales.pop()     
+    pila_operandos.append(result)
+    cuadruplos('&',operand1, operand2, result)
+
+def p_logicas_or(p):
+    '''
+    logicas :  OR 
+    '''
+    operand2 = pila_operandos.pop()
+    operand1 = pila_operandos.pop()
+    result = temporales.pop()     
+    pila_operandos.append(result)
+    cuadruplos('|',operand1, operand2, result)
+
+def p_logicas_not(p):
+    '''
+    logicas :  NOT 
+    '''
+    operand2 = pila_operandos.pop()
+    operand1 = pila_operandos.pop()
+    result = temporales.pop()     
+    pila_operandos.append(result)
+    cuadruplos('!',operand1, operand2, result)
+
+def p_constante_expr_logicas(p):
+    'comp_expression : constante'
+    p[0] = p[1]     # Nos permite operaciones recusrivas e infinitas
 
 #   CONSTANTES NUMERICAS para ser utilizadas en las expresiones
 def p_constante_num(p):
@@ -339,7 +468,7 @@ try:
 except EOFError:
     pass
 print("Fin de lectura")
-print("Tabla de simbolos Final:")
-print(tabla_de_simbolos)
+#print("Tabla de simbolos Final:")
+#print(tabla_de_simbolos)
 print("Pila de operandos Final:")
 print(pila_operandos)
