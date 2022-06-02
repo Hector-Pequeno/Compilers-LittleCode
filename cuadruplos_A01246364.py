@@ -18,6 +18,7 @@ def cuadruplos(operation, operand1, operand2, result):
     cuadruplo = [operation, operand1, operand2, result] # Armamos el cuadruplo
     print("Cuadruplo -> ",cuadruplo) #Imprimimos el cuadruplo
     print(pila_operandos)
+    print(" ")
 
 # To resolve ambiguity, especially in expression grammars,
 # yacc.py allows individual tokens to be assigned a precedence 
@@ -59,7 +60,7 @@ def p_estatutos(p):
               | estatutos e_while 
               | estatutos e_for   
               | estatutos c_func  
-              | estatutos comp_expression SEMICOLON
+              | estatutos log_exp SEMICOLON
               | empty
               
     '''
@@ -77,21 +78,21 @@ def p_estatutos(p):
 #   DECLARACION ESTATUTOS   IF    #
 def p_estatuto_if(p):
     '''
-    e_if : IF LPAR comp_expression RPAR THEN estatutos ENDIF
-         | IF LPAR comp_expression RPAR THEN estatutos ELSEIF LPAR comp_expression RPAR THEN estatutos ENDIF
+    e_if : IF LPAR log_exp RPAR THEN estatutos ENDIF
+         | IF LPAR log_exp RPAR THEN estatutos ELSEIF LPAR log_exp RPAR THEN estatutos ENDIF
          
     '''
 
 #   DECLARACION ESTATUTOS   WHILE    #
 def p_estatuto_while(p):
     '''
-    e_while : DO estatutos WHILE LPAR comp_expression RPAR ENDWHILE
+    e_while : DO estatutos WHILE LPAR log_exp RPAR ENDWHILE
     '''
 
 #   DECLARACION ESTATUTOS   FOR    #
 def p_estatuto_for(p):
     '''
-    e_for : FOR LPAR dec_Var comp_expression SEMICOLON incdec RPAR THEN estatutos ENDFOR
+    e_for : FOR LPAR dec_Var log_exp SEMICOLON incdec RPAR THEN estatutos ENDFOR
     '''
 
 #   ESTRUCTURA DE INCREMENTO Y DECREMENTO
@@ -288,112 +289,176 @@ def p_agrupar(p):
     '''
     p[0] = p[2]     # Nos quedamos con la expresion sin el parentesis
 
-def p_agrupar_logicos(p):
+#   Expresiones Logicas   #
+#   EQUAL   #
+def p_log_exp_eq(p):
     '''
-    constante : LPAR comp_expression RPAR
+    log_exp : log_exp EQUAL log_exp
     '''
-    p[0] = p[2]     # Nos quedamos con la expresion sin el parentesis
-
-#   Expresiones COMPARATIVAS   #
-def p_comp_expression_equal(p):
-    '''
-    comp_expression : expression EQUAL expression
-    '''
+    # Cuadruplos
     operand2 = pila_operandos.pop()
     operand1 = pila_operandos.pop()
     result = temporales.pop()     
     pila_operandos.append(result)
     cuadruplos('==',operand1, operand2, result)
 
-def p_comp_expression_gt(p):
+#   NOT EQUAL
+def p_log_exp_noteq(p):
     '''
-    comp_expression : expression GT expression
+    log_exp : log_exp NOTEQ log_exp
     '''
-    operand2 = pila_operandos.pop()
-    operand1 = pila_operandos.pop()
-    result = temporales.pop()     
-    pila_operandos.append(result)
-    cuadruplos('>',operand1, operand2, result)
-
-def p_comp_expression_lt(p):
-    '''
-    comp_expression : expression LT expression
-    '''
-    operand2 = pila_operandos.pop()
-    operand1 = pila_operandos.pop()
-    result = temporales.pop()     
-    pila_operandos.append(result)
-    cuadruplos('<',operand1, operand2, result)
-
-def p_comp_expression_gteq(p):
-    '''
-    comp_expression : expression GTEQ expression
-    '''
-    operand2 = pila_operandos.pop()
-    operand1 = pila_operandos.pop()
-    result = temporales.pop()     
-    pila_operandos.append(result)
-    cuadruplos('>=',operand1, operand2, result)
-
-def p_comp_expression_lteq(p):
-    '''
-    comp_expression : expression LTEQ expression
-    '''
-    operand2 = pila_operandos.pop()
-    operand1 = pila_operandos.pop()
-    result = temporales.pop()     
-    pila_operandos.append(result)
-    cuadruplos('<=',operand1, operand2, result)
-
-def p_comp_expression_noteq(p):
-    '''
-    comp_expression : expression NOTEQ expression
-    '''
+    # Cuadruplos
     operand2 = pila_operandos.pop()
     operand1 = pila_operandos.pop()
     result = temporales.pop()     
     pila_operandos.append(result)
     cuadruplos('!=',operand1, operand2, result)
 
-def p_comp_expression_logicas(p):
+#   GRATER THAN
+def p_log_exp_gt(p):
     '''
-    comp_expression : comp_expression logicas comp_expression
+    log_exp : log_exp GT log_exp
     '''
+    # Cuadruplos
+    operand2 = pila_operandos.pop()
+    operand1 = pila_operandos.pop()
+    result = temporales.pop()     
+    pila_operandos.append(result)
+    cuadruplos('>',operand1, operand2, result)
+#   LESS THAN   
+def p_log_exp_lt(p):
+    '''
+    log_exp : log_exp LT log_exp
+    '''
+    # Cuadruplos
+    operand2 = pila_operandos.pop()
+    operand1 = pila_operandos.pop()
+    result = temporales.pop()     
+    pila_operandos.append(result)
+    cuadruplos('<',operand1, operand2, result)
 
-#   Expresiones LOGICAS         #
-def p_logicas_and(p):
+#   GRATER THAN EQUAL
+def p_log_exp_gteq(p):
     '''
-    logicas :  AND 
+    log_exp : log_exp GTEQ log_exp
     '''
+    # Cuadruplos
+    operand2 = pila_operandos.pop()
+    operand1 = pila_operandos.pop()
+    result = temporales.pop()     
+    pila_operandos.append(result)
+    cuadruplos('>=',operand1, operand2, result)
+#   LOWER THAN EQUAL
+def p_log_exp_lteq(p):
+    '''
+    log_exp : log_exp LTEQ log_exp
+    '''
+    # Cuadruplos
+    operand2 = pila_operandos.pop()
+    operand1 = pila_operandos.pop()
+    result = temporales.pop()     
+    pila_operandos.append(result)
+    cuadruplos('<=',operand1, operand2, result)
+#   AND
+def p_log_exp_and(p):
+    '''
+    log_exp : log_exp AND log_exp
+    '''
+    # Cuadruplos
     operand2 = pila_operandos.pop()
     operand1 = pila_operandos.pop()
     result = temporales.pop()     
     pila_operandos.append(result)
     cuadruplos('&',operand1, operand2, result)
 
-def p_logicas_or(p):
+#   OR
+def p_log_exp_or(p):
     '''
-    logicas :  OR 
+    log_exp : log_exp OR log_exp
     '''
+    # Cuadruplos
     operand2 = pila_operandos.pop()
     operand1 = pila_operandos.pop()
     result = temporales.pop()     
     pila_operandos.append(result)
-    cuadruplos('|',operand1, operand2, result)
-
-def p_logicas_not(p):
+    cuadruplos('OR',operand1, operand2, result)
+#   NOT
+def p_log_exp_not(p):
     '''
-    logicas :  NOT 
+    log_exp : log_exp NOT log_exp
     '''
+    # Cuadruplos
     operand2 = pila_operandos.pop()
     operand1 = pila_operandos.pop()
     result = temporales.pop()     
     pila_operandos.append(result)
     cuadruplos('!',operand1, operand2, result)
 
+def p_log_agrupacion(p):
+    '''
+    log_exp : LPAR log_exp RPAR
+    '''
+    p[0] = p[2]     # Nos quedamos con la expresion sin el parentesis
+
 def p_constante_expr_logicas(p):
-    'comp_expression : constante'
+    'log_exp : constante'
     p[0] = p[1]     # Nos permite operaciones recusrivas e infinitas
+
+
+#def p_comp_expression_equal(p):
+#    '''
+#    comp_expression : expression EQUAL expression
+#    '''
+
+#def p_comp_expression_gt(p):
+#    '''
+#    comp_expression : expression GT expression
+#    '''
+
+#def p_comp_expression_lt(p):
+#    '''
+#    comp_expression : expression LT expression
+#    '''
+
+#def p_comp_expression_gteq(p):
+#    '''
+#    comp_expression : expression GTEQ expression
+#    '''
+
+
+#def p_comp_expression_lteq(p):
+#    '''
+#    comp_expression : expression LTEQ expression
+#    '''
+
+
+#def p_comp_expression_noteq(p):
+#    '''
+#    comp_expression : expression NOTEQ expression
+#    '''
+
+#def p_comp_expression_logicas(p):
+#    '''
+#    comp_expression : comp_expression logicas comp_expression
+#    '''
+
+#   Expresiones LOGICAS         #
+#def p_logicas_and(p):
+#    '''
+#    logicas :  AND 
+#    '''
+
+
+#def p_logicas_or(p):
+#    '''
+#    logicas :  OR 
+#    '''
+
+#def p_logicas_not(p):
+#    '''
+#    logicas :  NOT 
+#    '''
+
 
 #   CONSTANTES NUMERICAS para ser utilizadas en las expresiones
 def p_constante_num(p):
