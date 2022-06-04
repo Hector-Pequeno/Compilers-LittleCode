@@ -1,3 +1,13 @@
+# TABLA DE SIMBOLOS
+
+def updateSimbolTable(simbolo,tipo,tabla_de_simbolos,Simbol_Index):
+    tabla_de_simbolos[simbolo] = {} # Nos permite crear un diccionario de tipo NESTED
+    tabla_de_simbolos[simbolo]["Index"] = Simbol_Index # Guardamos la posicion en la tabla de simbolos
+    tabla_de_simbolos[simbolo]["Type"] = tipo # Guardamos en el diccionario el tipo de la variable
+    Simbol_Index = Simbol_Index + 1 # Incrementamos la posicion de la tabla de simbolos
+    return Simbol_Index
+
+# CUADRUPLOS
 temporales = []     # Variable para ingresar los temporales
 temporalCounter = 1 # Variable para contar el numero de temporales (T1 inicial)
 sTemporal = "T"     # String constante para los temporales
