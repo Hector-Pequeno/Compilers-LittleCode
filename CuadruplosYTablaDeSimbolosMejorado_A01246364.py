@@ -148,13 +148,11 @@ def p_dec_Arr(p):
     global Simbol_Index # Nos permite utilizar la variable global dentro de la actualizacion de simbolos
     simbolo = p[1]  # Obtenemos el simbolo
     tipo = p[4]  # Obtenemos el tipo de la variable
-    #print("p[1] = ",p[1],"p[2] = ",p[2],"p[3] = ",p[3],"p[4] = ",p[4], "p[5] = ",p[5],"p[6] = ",p[6])
     if simbolo in tabla_de_simbolos:
         compilador.exit(f"{simbolo} Array Already declared!")
     else:
         # Tabla de simbolos
         Simbol_Index = LittleTools.updateSimbolTable(simbolo,tipo,tabla_de_simbolos,Simbol_Index)
-
         # Cuadruplos
         LittleTools.genCuadruplos(simbolo,"=",pila_operandos)
 
@@ -174,12 +172,62 @@ def p_act_Arr(p):
 #   DECLARACION - DIMENSIONES POSIBLES Y SU COTENIDO
 def p_dimension(p):
     '''
-    dimension : LCAS expression RCAS
-              | LCAS expression RCAS LCAS expression RCAS
+    dimension : LCAS expression_arr RCAS
+              | LCAS expression_arr RCAS LCAS expression_arr RCAS
     '''
                                                           # Dimensiones con indices, tanto de tipo entero o variables
                                                           # ARR[V_int/ID], ARR[V_int/ID][V_int/ID] Maximo 2 dimensiones
+#   Expresiones para arreglos   #
+def p_suma_aritmetica_arr(p):
+    '''
+    expression_arr : expression_arr PLUS expression_arr 
+    '''
+    LittleTools.genCuadruplos(DUMMY,"+",pila_operandos)
 
+
+
+def p_resta_aritmetica_arr(p):
+    '''
+    expression_arr : expression_arr MINUS expression_arr 
+    '''
+    LittleTools.genCuadruplos(DUMMY,"-",pila_operandos)
+
+
+def p_mpy_aritmetica_arr(p):
+    '''
+    expression_arr : expression_arr TIMES expression_arr 
+    '''
+    LittleTools.genCuadruplos(DUMMY,"*",pila_operandos)
+
+def p_div_aritmetica_arr(p):
+    '''
+    expression_arr : expression_arr DIVIDE expression_arr 
+    '''
+    LittleTools.genCuadruplos(DUMMY,"/",pila_operandos)
+
+def p_constante_expr_aritmetica_arr(p):
+    'expression_arr : constante_arr'
+    p[0] = p[1]     # Nos permite operaciones recusrivas e infinitas
+
+def p_agrupar_arr(p):
+    '''
+    constante_arr : LPAR expression_arr RPAR
+    '''
+    p[0] = p[2]     # Nos quedamos con la expresion sin el parentesis
+
+def p_constante_num_arr(p):
+    '''
+    constante_arr : INTV
+                  | FLTV
+    '''
+    pila_operandos.append(p[1])
+#   CONSTANTES DE ID para ser utilizadas en las expresiones, como variables y arreglos
+def p_constante_ID_arr(p):
+    '''
+    constante_arr : ID
+                  | ID dimension
+    '''
+#   FIN EXPRESIONES ARREGLOS
 #   TIPOS DE DATOS    #
 def p_type(p):
     '''
@@ -384,7 +432,7 @@ def p_error(p):
 
 parser = yacc.yacc()
 try:
-    with open("pruebacuadruplos.txt",  encoding="utf8") as f:
+    with open("Programa_Prueba2.txt",  encoding="utf8") as f:
         file = f.read()
     parser.parse(file)
 except EOFError:
