@@ -20,7 +20,7 @@ def genTemporales():
     temporalCounter = temporalCounter + 1       # Aumentamos en 1 nuestro contador de temporales
 
 def genCuadruplos(simbolo,operation,pila_operandos):
-    if (operation == "=" or operation == "++" or operation == "--"):  # Validacion de Creacion / asignacion
+    if (operation == "="):  # Validacion de Creacion / asignacion
         operand1 = pila_operandos.pop()
         result   = simbolo
         if not simbolo in pila_operandos:                 # Verificamos si el simbolo ya habia sido declarado, para no meterlo en la pila mas veces
@@ -34,7 +34,20 @@ def genCuadruplos(simbolo,operation,pila_operandos):
             print("Cuadruplo -> ",cuadruplo)              # Imprimimos el cuadruplo
             #print(pila_operandos)
             print(" ")
-
+    elif (operation == "++" or operation == "--"):  # Validacion de Creacion / asignacion
+        operand1 = simbolo
+        result   = simbolo
+        if not simbolo in pila_operandos:                 # Verificamos si el simbolo ya habia sido declarado, para no meterlo en la pila mas veces
+            pila_operandos.append(result)        
+            cuadruplo = [operation, operand1," ", result] # Armamos el cuadruplo
+            print("Cuadruplo -> ",cuadruplo)              # Imprimimos el cuadruplo
+            #print(pila_operandos)
+            print(" ")
+        else:
+            cuadruplo = [operation, operand1," ", result] # Armamos el cuadruplo
+            print("Cuadruplo -> ",cuadruplo)              # Imprimimos el cuadruplo
+            #print(pila_operandos)
+            print(" ")
     elif(operation == "+" or operation == "-" or operation == "*" or operation == "/"): # Validacion Aritmetica
         operand2 = pila_operandos.pop()
         operand1 = pila_operandos.pop()
