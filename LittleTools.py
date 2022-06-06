@@ -97,33 +97,33 @@ def genCuadruplos(simbolo,operation,pila_operandos):
         pila_cuadruplos.append(cuadruplo)
         contador_cuadruplos = contador_cuadruplos + 1
 
-
-
-
-    #Funciona para el IF
-    elif(operation == "GOTOF"):
-        operand1 = pila_operandos.pop()               # Recuperamos el operando
-        genTemporales()                               # Generamos un temporal
-        result = temporales.pop()                     # Guardamos el temporal como resultado
-        pila_operandos.append(result)                 # Añadimos a la pila de operandos el resultado
-        pila_saltos.append(contador_cuadruplos)       # Añadimos el cuadruplo a saltar en su pila
-        cuadruplo = [operation, operand1,None,None]   # Armamos el cuadruplo
-        pila_cuadruplos.append(cuadruplo)             # Añadimos el cuadruplo a la pila de cuadruplos
-        contador_cuadruplos = contador_cuadruplos + 1 # Aumentamos el contador de cuadruplos
- 
-    elif(operation == "GOTO"):
-        salto = pila_saltos.pop()                           # Obtenemos el salto
-        pila_cuadruplos[salto][3] = contador_cuadruplos + 1 # Actualizamos el valor del salto de cuadruplo a saltar          
-        pila_saltos.append(contador_cuadruplos)             # Añadi
-        cuadruplo = [operation,None,None,None] # Armamos el cuadruplo
-        pila_cuadruplos.append(cuadruplo)
-        contador_cuadruplos = contador_cuadruplos + 1
-
     else:
         print(operation)
         print("error detected! bad logic!!")
 
+# FUNCIONES IF -TRADUCCION-
+def genCuadruplos_if(pila_operandos):
+    global contador_cuadruplos
+    operand1 = pila_operandos.pop()               # Recuperamos el operando
+    genTemporales()                               # Generamos un temporal
+    result = temporales.pop()                     # Guardamos el temporal como resultado
+    pila_operandos.append(result)                 # Añadimos a la pila de operandos el resultado
+    pila_saltos.append(contador_cuadruplos)       # Añadimos el cuadruplo a saltar en su pila
+    cuadruplo = ["GOTOF", operand1,None,None]   # Armamos el cuadruplo
+    pila_cuadruplos.append(cuadruplo)             # Añadimos el cuadruplo a la pila de cuadruplos
+    contador_cuadruplos = contador_cuadruplos + 1 # Aumentamos el contador de cuadruplos
+
+def genCuadruplos_if_then():
+    global contador_cuadruplos
+    salto = pila_saltos.pop()                           # Obtenemos el salto
+    pila_cuadruplos[salto][3] = contador_cuadruplos + 1 # Actualizamos el valor del salto de cuadruplo a saltar          
+    pila_saltos.append(contador_cuadruplos)             #
+    cuadruplo = ["GOTO",None,None,None] # Armamos el cuadruplo
+    pila_cuadruplos.append(cuadruplo)
+    contador_cuadruplos = contador_cuadruplos + 1
+
 def endifgoto():
+    global contador_cuadruplos
     salto = pila_saltos.pop()
     pila_cuadruplos[salto][3] = contador_cuadruplos
 
@@ -165,7 +165,7 @@ def genCuadruplos_endingwhile(pila_operandos):
     salto = pila_saltos.pop()
     operand1 = pila_operandos.pop()               # Recuperamos el operando
     pila_saltos.append(contador_cuadruplos)       # Añadimos el cuadruplo a saltar en su pila
-    cuadruplo = ["GOTOF", operand1,None,salto]   # Armamos el cuadruplo
+    cuadruplo = ["GOTO", operand1,None,salto]   # Armamos el cuadruplo
     pila_cuadruplos.append(cuadruplo)             # Añadimos el cuadruplo a la pila de cuadruplos
     contador_cuadruplos = contador_cuadruplos + 1 # Aumentamos el contador de cuadruplos
  
