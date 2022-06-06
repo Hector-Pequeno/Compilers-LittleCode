@@ -92,13 +92,13 @@ def p_estatuto_if_first(p):
     '''
     first_if : IF LPAR log_exp RPAR THEN
     '''
-    LittleTools.genCuadruplos(DUMMY,"GOTOF",pila_operandos)     # Cuadruplos de entrada al IF (GOTOF)
+    LittleTools.genCuadruplos_if(pila_operandos)     # Cuadruplos de entrada al IF (GOTOF)
     
 def p_estatuto_if_second(p):
     '''
     second_if : ELSE THEN
     '''
-    LittleTools.genCuadruplos(DUMMY,"GOTO",pila_operandos)
+    LittleTools.genCuadruplos_if_then()
 
 
 #   DECLARACION ESTATUTOS DO WHILE    #
@@ -169,7 +169,6 @@ def p_incdec(p):
 def p_dec_Var(p):
     '''
     dec_Var : ID DOUBLEPOINT type ASSIGN expression SEMICOLON
-            | ID DOUBLEPOINT type SEMICOLON
             | ID DOUBLEPOINT type ASSIGN f_read 
     '''
                                                           # NOMBRE_VAR : INT/STRING/FLOAT  = V_int/V_string/V_float/variable ;
@@ -186,6 +185,19 @@ def p_dec_Var(p):
         Simbol_Index = LittleTools.updateSimbolTable(simbolo,tipo,tabla_de_simbolos,Simbol_Index)
         # Llamamos a la generacion de Cuadruplos
         LittleTools.genCuadruplos(simbolo,"=",pila_operandos)
+
+def p_dec_Var_woI(p): # Variable sin inicializar
+    '''
+    dec_Var : ID DOUBLEPOINT type SEMICOLON
+    '''
+    global Simbol_Index # Nos permite utilizar la variable global dentro de la actualizacion de simbolos
+    simbolo = p[1]  # Obtenemos el simbolo
+    tipo = p[3]  # Obtenemos el tipo de la variable
+    if simbolo in tabla_de_simbolos:
+        compilador.exit(f"{simbolo} Already declared!")
+    else: 
+        # Tabla de simbolos
+        Simbol_Index = LittleTools.updateSimbolTable(simbolo,tipo,tabla_de_simbolos,Simbol_Index)
 
 #   ACTUALIZACION DE VARIABLES  #
 def p_act_Var(p):
@@ -218,7 +230,7 @@ def p_dec_Arr(p):
         # Tabla de simbolos
         Simbol_Index = LittleTools.updateSimbolTable(simbolo,tipo,tabla_de_simbolos,Simbol_Index)
         # Cuadruplos
-        LittleTools.genCuadruplos(simbolo,"=",pila_operandos)
+        #LittleTools.genCuadruplos(simbolo,"=",pila_operandos)
 
         
 #   ACTUALIZACION DE VARIABLES TIPO ARREGLO     #
@@ -523,4 +535,4 @@ print("Cuadruplos:")
 for i in range (len( LittleTools.pila_cuadruplos)):
     print(LittleTools.pila_cuadruplos[i])
 print("Contador de cuadruplos")
-print(LittleTools.contador_cuadruplos-1)
+print(LittleTools.contador_cuadruplos)
