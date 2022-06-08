@@ -583,75 +583,71 @@ print(temporalesCopia)
 # Ciclo de revision de cuadruplos
 print("Inicio While")
 while pc < len(cuadruplos_Finales):
-    cuadruplo_actual = cuadruplos_Finales[pc]
+    cuadruplo_actual = cuadruplos_Finales[pc]   # Nos colocamos en el cuadruplo actual
     operation = cuadruplos_Finales[pc][0]       # Obtenemos la operacion del cuadruplo
     operando1 = cuadruplos_Finales[pc][1]       # Obtenemos primer operando
     operando2 = cuadruplos_Finales[pc][2]       # Obtenemos segundo operando
     resultado = cuadruplos_Finales[pc][3]       # Obtenemos donde se asigna el resultado
-# Verificamos si op1 es una variable/temporal o una constante:
-    if(operando1 in tabla_de_simbolos): # Se verifica a op1 como simbolo
-        if("Value" in tabla_de_simbolos[operando1]): # Verificamos si existe un valor para la variable
+    # Verificamos si operando1 es una variable/temporal o una constante:
+    if(operando1 in tabla_de_simbolos):
+        if("Value" in tabla_de_simbolos[operando1]):          # Verificamos si existe un valor para la variable
             operando1 = tabla_de_simbolos[operando1]["Value"] # Obtenemos su valor
         else:
             compilador.exit("Variable sin inicializar")
-    elif(operando1 in temporalesCopia): # Verificamos si el operando es un temporal
-        fNum_operamdo1 = int(operando1[1])# Obtenemos la parte numerica del temporal
-        operando1 = resTemporales[fNum_operamdo1-1] # Guardamos en el operando 1 el resultado almacenado en resTemporados (indice correspondiente)
+    elif(operando1 in temporalesCopia):                       # Verificamos si el operando es un temporal
+        fNum_operamdo1 = int(operando1[1])                    # Obtenemos la parte numerica del temporal
+        operando1 = resTemporales[fNum_operamdo1-1]           # Guardamos en el operando 1 el resultado almacenado en resTemporados (indice correspondiente)
 
-# Verificamos si op2 es una variable/temporal o una constante:
-    if(operando2 in tabla_de_simbolos): # Se verifica a op2 como simbolo
-        if("Value" in tabla_de_simbolos[operando2]): # Verificamos si existe un valor para la variable
+    # Verificamos si operando1 es una variable/temporal o una constante:
+    if(operando2 in tabla_de_simbolos):                       # Se verifica a op2 como simbolo
+        if("Value" in tabla_de_simbolos[operando2]):          # Verificamos si existe un valor para la variable
             operando2 = tabla_de_simbolos[operando2]["Value"] # Obtenemos su valor
         else:
             compilador.exit("Variable sin inicializar")
-    elif(operando2 in temporalesCopia): # Verificamos si el operando es un temporal
-        fNum_operamdo2 = int(operando2[1]) # Obtenemos la parte numerica del temporal
-        operando2 = resTemporales[fNum_operamdo2-1] # Guardamos en el operando 1 el resultado almacenado en resTemporados (indice correspondiente)
+    elif(operando2 in temporalesCopia):                       # Verificamos si el operando es un temporal
+        fNum_operamdo2 = int(operando2[1])                    # Obtenemos la parte numerica del temporal
+        operando2 = resTemporales[fNum_operamdo2-1]           # Guardamos en el operando 1 el resultado almacenado en resTemporados (indice correspondiente)
     
-# Verificamos si el resultado es un temporal
+    # Verificamos si el resultado es un temporal
     if(resultado in temporalesCopia):
         numTemporal = resultado[1]# Obtenemos el indice de temporal
-
-# Realizamos Operacion y guardamos en el numero que obtenemos del numTemporal[0] en el arreglo de resultados de temporales
+        # Realizamos Operacion y guardamos en el numero que obtenemos del numTemporal[0] en el arreglo de resultados de temporales
         if operation == "=": 
             resTemporales[int(numTemporal)] = operando1
-            pc = pc + 1
+            pc += 1
         elif operation == "+":
-            resTemporales[int(numTemporal)-1] = operando1 + operando2
-            pc = pc + 1
+            resTemporales[int(numTemporal)-1] = (operando1 + operando2)
+            pc += 1
         elif operation == "-":
-            
-            resTemporales[int(numTemporal)-1] = operando1 - operando2
-            pc = pc + 1
+            resTemporales[int(numTemporal)-1] = (operando1 - operando2)
+            pc += 1
         elif operation == "*":
-            resTemporales[int(numTemporal)-1] = operando1 * operando2
-            pc = pc + 1
+            resTemporales[int(numTemporal)-1] = (operando1 * operando2)
+            pc += 1
         elif operation == "/":
-            resTemporales[int(numTemporal)-1] = operando1 / operando2
-            pc = pc + 1
-        elif operation == ">=":
-            resTemporales[int(numTemporal)-1] = operando1 >= operando2
-            pc = pc + 1
-        elif operation == "<=":
-
-            resTemporales[int(numTemporal)-1] = operando1 <= operando2
-            pc = pc + 1
-        elif operation == ">":
-            resTemporales[int(numTemporal)-1] = operando1 > operando2
-            pc = pc + 1
-        elif operation == "<":
-
-            resTemporales[int(numTemporal)-1] = operando1 < operando2
-            pc = pc + 1
+            resTemporales[int(numTemporal)-1] = (operando1 / operando2)
+            pc += 1        
         elif operation == "==":
-            resTemporales[int(numTemporal)-1] = operando1 == operando2
-            pc = pc + 1
+            resTemporales[int(numTemporal)-1] = (operando1 == operando2)
+            pc += 1
+        elif operation == ">":
+            resTemporales[int(numTemporal)-1] = (operando1 > operando2)
+            pc += 1
+        elif operation == "<":
+            resTemporales[int(numTemporal)-1] = (operando1 < operando2)
+            pc += 1
+        elif operation == ">=":
+            resTemporales[int(numTemporal)-1] = (operando1 >= operando2)
+            pc += 1
+        elif operation == "<=":
+            resTemporales[int(numTemporal)-1] = (operando1 <= operando2)
+            pc += 1
         elif operation == "&":
-            resTemporales[int(numTemporal)-1] = operando1 and operando2
-            pc = pc + 1
+            resTemporales[int(numTemporal)-1] = (operando1 and operando2)
+            pc += 1
         elif operation == "|":
-            resTemporales[int(numTemporal)-1] = operando1 or operando2
-            pc = pc + 1
+            resTemporales[int(numTemporal)-1] = (operando1 or operando2)
+            pc += 1
 #########
     else:
         if operation == "=":
@@ -671,6 +667,7 @@ while pc < len(cuadruplos_Finales):
                 else:
                     tabla_de_simbolos[resultado]["Value"] = operando1
                     pc += 1
+                    
         elif operation == "+":
             tabla_de_simbolos[resultado]["Value"] = operando1 + operando2
             pc = pc + 1
