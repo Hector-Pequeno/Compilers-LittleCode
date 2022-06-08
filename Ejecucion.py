@@ -14,8 +14,9 @@ tabla_de_simbolos = {} # Lista vacia, donde seran guardados nuestros simbolos
 Simbol_Index = 0
 
 #   CUADRUPLOS      #
-Append_Flag = 1 # Bandera para verificar si es necesario volverlo a meter a la pila de operandos, 1 - SI SE METE, 0 - NO SE METE
+Append_Flag = 1     # Bandera para verificar si es necesario volverlo a meter a la pila de operandos, 1 - SI SE METE, 0 - NO SE METE
 pila_operandos = [] # Arreglo de operandos
+aux_for = 0         # Nos funciona para guardar la variable a incrementar en el ciclo for
 
 # Ejecucion
 pc = 0
@@ -37,20 +38,30 @@ precedence = (
 
 def p_program(p):
     '''
-    program : main
-            | program dec_func
+    program : program dec_func
+            | program main
+            | program dec_Var
             | empty
     '''
                                                           # funcion_n(){estatutos}  y|o  main(){ estatutos }  y|o vacio
-                                                    
 def p_main(p):
     '''
-    main : MAIN LPAR RPAR LBRK estatutos RBRK
+    main : mainBegin estatutos RBRK
     '''
                                                           # main(){ estatutos }
+    #######            
+    LittleTools.endProgram()          # END PROGRAM
+
+def p_mainBegin(p):
+    '''
+    mainBegin : MAIN LPAR RPAR LBRK
+    '''
+    posicionMain = LittleTools.contador_cuadruplos
+    LittleTools.fill_functionsCuadruplos_main(posicionMain)  
+    
 def p_estatutos(p):
     '''
-    estatutos : estatutos dec_Var 
+    estatutos : estatutos dec_Var
               | estatutos act_Var 
               | estatutos dec_Arr 
               | estatutos act_Arr 
@@ -124,13 +135,17 @@ def p_estatuto_for(p):
     '''
     e_for : e_for_first e_for_second
     '''
+    global aux_for
+    LittleTools.genCuadruplos_endingfor(aux_for)
 
-    LittleTools.genCuadruplos_endingfor()
 def p_estatuto_for_first(p):
     '''
     e_for_first : FOR LPAR act_Var_for RPAR TO INTV
     '''
-    pila_operandos.append(p[6]) # Agregamos operando a la p2ila 
+    global aux_for
+    simbolo = p[6]
+    pila_operandos.append(simbolo) # Agregamos operando a la pila 
+    aux_for = simbolo
     LittleTools.genCuadruplos(DUMMY,"<=",pila_operandos)
     LittleTools.genCuadruplos_for(pila_operandos)     # Cuadruplos de entrada al IF (GOTOF)
 
@@ -486,11 +501,27 @@ def p_call_func(p):
     simbolo = p[1] # Obtenemos el simbolo
     if not p[1] in tabla_de_simbolos:   # Verificamos si el simbolo se encuentra declarado, en este caso la funcion
         compilador.exit(f"{simbolo} Function is not declared!")
-
+    # Generar cuadruplo para ir a las funciones
+    LittleTools.gen_callCuadruplo(simbolo)
+    posicionLlamado = LittleTools.contador_cuadruplos
+    LittleTools.fill_functionsCuadruplos(posicionLlamado)
 #   Formato de la funcion
 def p_func_dec(p):
     '''
-    dec_func : ID LPAR RPAR LBRK estatutos  RBRK
+    dec_func : dec_func_init dec_func_end RBRK
+    ''' 
+                                                          # Sintaxis de la estructura de una funcion ID(){ estatutos }
+    #genermos cuadruplos
+    #pila_operandos.pop()
+    LittleTools.genCuadruplo_dec_func()
+def p_func_end(p):
+    '''
+    dec_func_end : LBRK estatutos
+    
+    '''
+def p_func_int(p):
+    '''
+    dec_func_init : ID LPAR RPAR 
     ''' 
                                                           # Sintaxis de la estructura de una funcion ID(){ estatutos }
     global Simbol_Index # Nos permite utilizar la variable global dentro de la actualizacion de simbolos
@@ -501,6 +532,9 @@ def p_func_dec(p):
     else:
         # Tabla de simbolos
         Simbol_Index = LittleTools.updateSimbolTable(simbolo,tipo,tabla_de_simbolos,Simbol_Index)
+        # Generamos su cuadruplo
+        LittleTools.genCuadruploinit_dec_func(simbolo)
+
 
 
 #   DEFINICION DE EMPTY     #
@@ -538,7 +572,7 @@ print(LittleTools.contador_cuadruplos)
 
 
 # Restamos al contador de cuadruplos 1, para que este en el rango de la lista
-LittleTools.contador_cuadruplos -= 1
+# LittleTools.contador_cuadruplos -= 1
 print("Ejecucion iniciada:")
 cuadruplos_Finales = LittleTools.pila_cuadruplos # Obtenemos la lista de cuadruplos
 temporalesCopia = LittleTools.temporalesCopy     # Obtenemos la copia de los temporales
@@ -554,10 +588,6 @@ while pc < len(cuadruplos_Finales):
     operando1 = cuadruplos_Finales[pc][1]       # Obtenemos primer operando
     operando2 = cuadruplos_Finales[pc][2]       # Obtenemos segundo operando
     resultado = cuadruplos_Finales[pc][3]       # Obtenemos donde se asigna el resultado
-    #print("tabla simbolos act ->",tabla_de_simbolos)
-    #print("cuadruplo act ->",cuadruplo_actual)
-    #print("Pila de resultados ->",resTemporales)
-    #print("")
 # Verificamos si op1 es una variable/temporal o una constante:
     if(operando1 in tabla_de_simbolos): # Se verifica a op1 como simbolo
         if("Value" in tabla_de_simbolos[operando1]): # Verificamos si existe un valor para la variable
@@ -565,12 +595,7 @@ while pc < len(cuadruplos_Finales):
         else:
             compilador.exit("Variable sin inicializar")
     elif(operando1 in temporalesCopia): # Verificamos si el operando es un temporal
-        #print("     Verificamos operando 1")
-        #print("Operando 1 = ",operando1)
         fNum_operamdo1 = int(operando1[1])# Obtenemos la parte numerica del temporal
-        #print("fNum_operamdo1 ->", fNum_operamdo1)
-        #print("Tabla de resultados : \n", resTemporales)
-        #print("fNum_operamdo1 ->",fNum_operamdo1)
         operando1 = resTemporales[fNum_operamdo1-1] # Guardamos en el operando 1 el resultado almacenado en resTemporados (indice correspondiente)
 
 # Verificamos si op2 es una variable/temporal o una constante:
@@ -581,7 +606,6 @@ while pc < len(cuadruplos_Finales):
             compilador.exit("Variable sin inicializar")
     elif(operando2 in temporalesCopia): # Verificamos si el operando es un temporal
         fNum_operamdo2 = int(operando2[1]) # Obtenemos la parte numerica del temporal
-        #print("fNum_operamdo2 ->",fNum_operamdo2)
         operando2 = resTemporales[fNum_operamdo2-1] # Guardamos en el operando 1 el resultado almacenado en resTemporados (indice correspondiente)
     
 # Verificamos si el resultado es un temporal
@@ -591,12 +615,9 @@ while pc < len(cuadruplos_Finales):
 # Realizamos Operacion y guardamos en el numero que obtenemos del numTemporal[0] en el arreglo de resultados de temporales
         if operation == "=": 
             resTemporales[int(numTemporal)] = operando1
-            #resTemporales.append(operando1)
             pc = pc + 1
         elif operation == "+":
-            #print(resTemporales)
             resTemporales[int(numTemporal)-1] = operando1 + operando2
-#            resTemporales.append(operando1 + operando2)
             pc = pc + 1
         elif operation == "-":
             
@@ -619,16 +640,11 @@ while pc < len(cuadruplos_Finales):
             resTemporales[int(numTemporal)-1] = operando1 > operando2
             pc = pc + 1
         elif operation == "<":
-            #print("Operando 1 -> ",operando1)
-            #print("Operando 2 -> ",operando2)
-            #print("")
+
             resTemporales[int(numTemporal)-1] = operando1 < operando2
             pc = pc + 1
         elif operation == "==":
             resTemporales[int(numTemporal)-1] = operando1 == operando2
-            pc = pc + 1
-        elif operation == "!=":
-            resTemporales[int(numTemporal)-1] = operando1 != operando2
             pc = pc + 1
         elif operation == "&":
             resTemporales[int(numTemporal)-1] = operando1 and operando2
@@ -668,6 +684,22 @@ while pc < len(cuadruplos_Finales):
                 #print("False PC = ", pc)
             else:
                 pc += 1
+        elif operation == "Endprocedure":
+            pc = resultado
+        elif operation == "GOTOS":
+            pc = resultado
+            #print("True PC = ", pc)
+
+        elif operation == "CALL":
+            pc = resultado
+                #print("False PC = ", pc)
+        elif operation == "Endprogram":
+            pc = pc+1
+
+        else:
+            pc += 1
 print("Tabla de simbolos:")
 for key in tabla_de_simbolos:
-    print(key, ' : ', tabla_de_simbolos[key])        
+    print(key, ' : ', tabla_de_simbolos[key])       
+compilador.exit("\nCorrectly Execution :D")
+ 
