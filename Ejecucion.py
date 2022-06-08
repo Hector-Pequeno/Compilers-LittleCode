@@ -100,16 +100,24 @@ def p_estatuto_if_second(p):
 #   DECLARACION ESTATUTOS DO WHILE    #
 def p_estatuto_while(p):
     '''
-    e_while : first_while estatutos ENDWHILE LPAR log_exp RPAR
+    e_while : first_while estatutos second_while
     '''
-    LittleTools.genCuadruplos_endingwhile(pila_operandos)
+    LittleTools.genCuadruplos_endingwhile()
 
 
 def p_estatuto_first_while(p):
     '''
-    first_while : DO THEN  
+    first_while : WHILE LPAR log_exp RPAR THEN  
     '''
-    LittleTools.genCuadruplos_while()
+    LittleTools.genCuadruplos_while(pila_operandos)
+    
+
+def p_estatuto_second_while(p):
+    '''
+    second_while : ENDWHILE
+    '''
+    LittleTools.genCuadruplos_whilethen()
+
 
 #   DECLARACION ESTATUTOS   FOR    #
 def p_estatuto_for(p):
@@ -122,7 +130,7 @@ def p_estatuto_for_first(p):
     '''
     e_for_first : FOR LPAR act_Var_for RPAR TO INTV
     '''
-    pila_operandos.append(p[6]) # Agregamos operando a la pila 
+    pila_operandos.append(p[6]) # Agregamos operando a la p2ila 
     LittleTools.genCuadruplos(DUMMY,"<=",pila_operandos)
     LittleTools.genCuadruplos_for(pila_operandos)     # Cuadruplos de entrada al IF (GOTOF)
 
@@ -131,7 +139,7 @@ def p_estatuto_for_second(p):
     '''
     e_for_second : THEN estatutos ENDFOR
     '''
-    LittleTools.genCuadruplos_endfor()
+    LittleTools.genCuadruplos_endfor() 
 
 def p_act_Var_for(p):
     '''
@@ -147,22 +155,7 @@ def p_act_Var_for(p):
     LittleTools.genCuadruplos(simbolo,"=",pila_operandos)
     pila_operandos.append(p[1]) # Agregamos el simbolo para poder realizar la comparacion contra la constante
     LittleTools.fillSimbolTable(simbolo,tabla_de_simbolos,valor)
-#   ESTRUCTURA DE INCREMENTO Y DECREMENTO
-#def p_incdec(p):
-#    '''
-#    expression : ID INC
-#               | ID DEC
-#    '''
-#    simbolo = p[1] # Obtenemos el simbolo
-#    if not p[1] in tabla_de_simbolos:   # Verificamos si el simbolo se encuentra declarado, para actualizarlo
-#        compilador.exit(f"{simbolo} is not declared!")
-#    if  (p[2] == '++'):
-#        LittleTools.genCuadruplos(simbolo,"++",pila_operandos)
 
-#    elif(p[2] == '--'):
-#        LittleTools.genCuadruplos(simbolo,"--",pila_operandos)
-
-                                                          # Nos indica como se ejecuta un incremento i++, i--
 def p_dec_Var(p):
     '''
     dec_Var : ID DOUBLEPOINT type ASSIGN expression SEMICOLON
@@ -549,16 +542,22 @@ LittleTools.contador_cuadruplos -= 1
 print("Ejecucion iniciada:")
 cuadruplos_Finales = LittleTools.pila_cuadruplos # Obtenemos la lista de cuadruplos
 temporalesCopia = LittleTools.temporalesCopy     # Obtenemos la copia de los temporales
-resTemporales = []                               # Lista donde se guardan los valores de los temporales
+#resTemporales = []                  # Lista donde se guardan los valores de los temporales
+resTemporales = [1,2,3,4,5,6,7,8,9,10,11,12,13,14]
 
+print(temporalesCopia)
 # Ciclo de revision de cuadruplos
+print("Inicio While")
 while pc < len(cuadruplos_Finales):
     cuadruplo_actual = cuadruplos_Finales[pc]
     operation = cuadruplos_Finales[pc][0]       # Obtenemos la operacion del cuadruplo
     operando1 = cuadruplos_Finales[pc][1]       # Obtenemos primer operando
     operando2 = cuadruplos_Finales[pc][2]       # Obtenemos segundo operando
     resultado = cuadruplos_Finales[pc][3]       # Obtenemos donde se asigna el resultado
-
+    #print("tabla simbolos act ->",tabla_de_simbolos)
+    #print("cuadruplo act ->",cuadruplo_actual)
+    #print("Pila de resultados ->",resTemporales)
+    #print("")
 # Verificamos si op1 es una variable/temporal o una constante:
     if(operando1 in tabla_de_simbolos): # Se verifica a op1 como simbolo
         if("Value" in tabla_de_simbolos[operando1]): # Verificamos si existe un valor para la variable
@@ -566,7 +565,12 @@ while pc < len(cuadruplos_Finales):
         else:
             compilador.exit("Variable sin inicializar")
     elif(operando1 in temporalesCopia): # Verificamos si el operando es un temporal
+        #print("     Verificamos operando 1")
+        #print("Operando 1 = ",operando1)
         fNum_operamdo1 = int(operando1[1])# Obtenemos la parte numerica del temporal
+        #print("fNum_operamdo1 ->", fNum_operamdo1)
+        #print("Tabla de resultados : \n", resTemporales)
+        #print("fNum_operamdo1 ->",fNum_operamdo1)
         operando1 = resTemporales[fNum_operamdo1-1] # Guardamos en el operando 1 el resultado almacenado en resTemporados (indice correspondiente)
 
 # Verificamos si op2 es una variable/temporal o una constante:
@@ -577,6 +581,7 @@ while pc < len(cuadruplos_Finales):
             compilador.exit("Variable sin inicializar")
     elif(operando2 in temporalesCopia): # Verificamos si el operando es un temporal
         fNum_operamdo2 = int(operando2[1]) # Obtenemos la parte numerica del temporal
+        #print("fNum_operamdo2 ->",fNum_operamdo2)
         operando2 = resTemporales[fNum_operamdo2-1] # Guardamos en el operando 1 el resultado almacenado en resTemporados (indice correspondiente)
     
 # Verificamos si el resultado es un temporal
@@ -585,43 +590,51 @@ while pc < len(cuadruplos_Finales):
 
 # Realizamos Operacion y guardamos en el numero que obtenemos del numTemporal[0] en el arreglo de resultados de temporales
         if operation == "=": 
-            resTemporales[numTemporal] = operando1
+            resTemporales[int(numTemporal)] = operando1
+            #resTemporales.append(operando1)
             pc = pc + 1
         elif operation == "+":
-            resTemporales.append(operando1 + operando2)
+            #print(resTemporales)
+            resTemporales[int(numTemporal)-1] = operando1 + operando2
+#            resTemporales.append(operando1 + operando2)
             pc = pc + 1
         elif operation == "-":
-            resTemporales[numTemporal[0]] = operando1 - operando2
+            
+            resTemporales[int(numTemporal)-1] = operando1 - operando2
             pc = pc + 1
         elif operation == "*":
-            resTemporales[numTemporal[0]] = operando1 * operando2
+            resTemporales[int(numTemporal)-1] = operando1 * operando2
             pc = pc + 1
         elif operation == "/":
-            resTemporales[numTemporal[0]] = operando1 / operando2
+            resTemporales[int(numTemporal)-1] = operando1 / operando2
             pc = pc + 1
         elif operation == ">=":
-            resTemporales[numTemporal[0]] = operando1 >= operando2
+            resTemporales[int(numTemporal)-1] = operando1 >= operando2
             pc = pc + 1
         elif operation == "<=":
-            resTemporales[numTemporal[0]] = operando1 <= operando2
+
+            resTemporales[int(numTemporal)-1] = operando1 <= operando2
             pc = pc + 1
         elif operation == ">":
-            resTemporales[numTemporal[0]] = operando1 > operando2
+            resTemporales[int(numTemporal)-1] = operando1 > operando2
             pc = pc + 1
         elif operation == "<":
-            resTemporales[numTemporal[0]] = operando1 < operando2
+            #print("Operando 1 -> ",operando1)
+            #print("Operando 2 -> ",operando2)
+            #print("")
+            resTemporales[int(numTemporal)-1] = operando1 < operando2
             pc = pc + 1
         elif operation == "==":
-            resTemporales[numTemporal[0]] = operando1 == operando2
+            resTemporales[int(numTemporal)-1] = operando1 == operando2
             pc = pc + 1
         elif operation == "!=":
-            resTemporales[numTemporal[0]] = operando1 != operando2
+            resTemporales[int(numTemporal)-1] = operando1 != operando2
             pc = pc + 1
         elif operation == "&":
-            resTemporales[numTemporal[0]] = operando1 and operando2
+            resTemporales[int(numTemporal)-1] = operando1 and operando2
             pc = pc + 1
         elif operation == "|":
-            resTemporales[numTemporal[0]] = operando1 or operando2
+            resTemporales[int(numTemporal)-1] = operando1 or operando2
             pc = pc + 1
 #########
     else:
@@ -645,11 +658,14 @@ while pc < len(cuadruplos_Finales):
         elif operation == "+":
             tabla_de_simbolos[resultado]["Value"] = operando1 + operando2
             pc = pc + 1
-        elif operation == "goto":
+        elif operation == "GOTO":
             pc = resultado
-        elif operation == "gotof":
-            if(operando2 == False):
+            #print("True PC = ", pc)
+
+        elif operation == "GOTOF":
+            if(operando1 == False):
                 pc = resultado
+                #print("False PC = ", pc)
             else:
                 pc += 1
 print("Tabla de simbolos:")
