@@ -10,12 +10,14 @@
 import ply.lex as lex
 #import ply.yacc as yacc
 
-Programa = open('Programa_incorrecto1.txt','r') 
+Programa = open('pruebacuadruplos.txt','r') 
 
 reserved = [
     'INT', 'FLT','STRING','MAIN',
-    'IF', 'WHILE', 'DO', 'FOR', 'ELSEIF','ENDIF',
-    'THEN', 'ENDFOR', 'ENDWHILE','WRITE', 'READ',
+    'IF', 'WHILE','ENDWHILE', 
+    #'DO', 
+    'FOR','ENDIF', 'TO',
+    'THEN', 'ENDFOR','WRITE', 'READ','ELSE',
 ]
 tokens = [
     'ID',                                                   # Identificadores 
@@ -25,7 +27,6 @@ tokens = [
     'SEMICOLON', 'DOUBLEPOINT',                             # Puntuaciones
     'GT', 'LT', 'GTEQ', 'LTEQ', 'EQUAL', 'NOT','NOTEQ',     # Comparaciones
     'AND', 'OR',                                            # Logicos  
-    'DEC', 'INC',                                           # Incremento y decremento
     'ASSIGN',                                               # Asignacion
 ] 
 tokens = tokens + reserved
@@ -54,8 +55,6 @@ t_LBRK = r'\{'
 t_RBRK = r'\}'
 t_DOUBLEPOINT = r'\:'
 t_SEMICOLON = r'\;'
-t_INC = r'\+\+'
-t_DEC = r'\-\-'
 
 # Ignored characters
 t_ignore = r' '
@@ -99,10 +98,10 @@ def t_INTV(t):
     t.value = int(t.value)
     return t 
 
-def t_DO(t):
-    r'DO'
-    t.type = 'DO'
-    return t
+#def t_DO(t):
+#    r'DO'
+#    t.type = 'DO'
+#    return t
 
 def t_TO(t):
     r'TO'
@@ -112,11 +111,6 @@ def t_TO(t):
 def t_ENDIF(t):
     r'ENDIF'
     t.type = 'ENDIF'
-    return t
-
-def t_ELSEIF(t):
-    r'ELSEIF'
-    t.type = 'ELSEIF'
     return t
 
 def t_ENDWHILE(t):
@@ -185,11 +179,11 @@ def t_error(t):
     
 # Build the lexer
 lexer = lex.lex()
-#lexer.input(Programa.read())
+lexer.input(Programa.read())
 #while True:
 #    tok = lexer.token()
 #    print(tok)
 #    if not tok: 
 #        break
-Programa.close()
+#Programa.close()
 #print(tok)
