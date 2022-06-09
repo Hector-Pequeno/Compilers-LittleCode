@@ -139,17 +139,16 @@ def p_estatuto_for(p):
     e_for : e_for_first e_for_second
     '''
     global aux_for
-    LittleTools.genCuadruplos_endingfor(aux_for)
+    LittleTools.genCuadruplos_endingfor()
 
 def p_estatuto_for_first(p):
     '''
     e_for_first : FOR LPAR act_Var_for RPAR TO INTV
+                | FOR LPAR act_Var_for RPAR TO ID
     '''
-    global aux_for
     simbolo = p[6]
     pila_operandos.append(simbolo) # Agregamos operando a la pila 
-    aux_for = simbolo
-    LittleTools.genCuadruplos(DUMMY,"<=",pila_operandos)
+    LittleTools.genCuadruplos(DUMMY,"<",pila_operandos)
     LittleTools.genCuadruplos_for(pila_operandos)     # Cuadruplos de entrada al IF (GOTOF)
 
 
@@ -157,6 +156,10 @@ def p_estatuto_for_second(p):
     '''
     e_for_second : THEN estatutos ENDFOR
     '''
+    global aux_for
+    pila_operandos.append(aux_for)
+    LittleTools.genCuadruplos_plus_for(aux_for,"+",pila_operandos)
+
     LittleTools.genCuadruplos_endfor() 
 
 def p_act_Var_for(p):
@@ -164,8 +167,10 @@ def p_act_Var_for(p):
     act_Var_for : ID ASSIGN INTV
 
     '''
+    global aux_for
     simbolo = p[1]
     valor = p[3]
+    aux_for = simbolo
     if not p[1] in tabla_de_simbolos:   # Verificamos si el simbolo se encuentra declarado, para actualizarlo
         compilador.exit(f"{simbolo} is not declared!")
     # Generamos Cuadruplos
@@ -506,8 +511,7 @@ def p_call_func(p):
         compilador.exit(f"{simbolo} Function is not declared!")
     # Generar cuadruplo para ir a las funciones
     LittleTools.gen_callCuadruplo(simbolo)
-    posicionLlamado = LittleTools.contador_cuadruplos
-    LittleTools.fill_functionsCuadruplos(posicionLlamado)
+    LittleTools.fill_functionsCuadruplos()
 #   Formato de la funcion
 def p_func_dec(p):
     '''
@@ -555,29 +559,27 @@ def p_error(p):
 
 parser = yacc.yacc()
 try:
-    with open("ejecucion.txt",  encoding="utf8") as f:
+    with open("ejecucion_VS_if.txt",  encoding="utf8") as f:
         file = f.read()
     parser.parse(file)
 except EOFError:
     pass
 
 print("Fin de lectura")
-print("Tabla de simbolos Final:")
+
+print("\nTabla de simbolos Inicial:")
 for key in tabla_de_simbolos:
     print(key, ' : ', tabla_de_simbolos[key])
-print("Pila de operandos Final:")
-print(pila_operandos)
+
 print(" ")
-print("Cuadruplos:")
+print("Cuadruplos a Ejecutar:")
 for i in range (len( LittleTools.pila_cuadruplos)):
     print(LittleTools.pila_cuadruplos[i])
-print("Contador de cuadruplos")
-print(LittleTools.contador_cuadruplos)
+
 
 
 # Restamos al contador de cuadruplos 1, para que este en el rango de la lista
 # LittleTools.contador_cuadruplos -= 1
-print("Ejecucion iniciada:")
 cuadruplos_Finales = LittleTools.pila_cuadruplos # Obtenemos la lista de cuadruplos
 temporalesCopia = LittleTools.temporalesCopy     # Obtenemos la copia de los temporales
 #resTemporales = []                  # Lista donde se guardan los valores de los temporales
@@ -585,7 +587,9 @@ resTemporales = [1,2,3,4,5,6,7,8,9,10,11,12,13,14]
 
 print(temporalesCopia)
 # Ciclo de revision de cuadruplos
-print("Inicio While")
+print("\nInicio Ejecucion...")
+print("\nOutput Consola:")
+
 while pc < len(cuadruplos_Finales):
     cuadruplo_actual = cuadruplos_Finales[pc]   # Nos colocamos en el cuadruplo actual
     operation = cuadruplos_Finales[pc][0]       # Obtenemos la operacion del cuadruplo
@@ -677,29 +681,28 @@ while pc < len(cuadruplos_Finales):
             pc = pc + 1
         elif operation == "GOTO":
             pc = resultado
-            #print("True PC = ", pc)
-
         elif operation == "GOTOF":
             if(operando1 == False):
                 pc = resultado
-                #print("False PC = ", pc)
             else:
                 pc += 1
         elif operation == "Endprocedure":
             pc = resultado
         elif operation == "GOTOS":
             pc = resultado
-            #print("True PC = ", pc)
-
         elif operation == "CALL":
             pc = resultado
-                #print("False PC = ", pc)
         elif operation == "Endprogram":
             pc = pc+1
-
+        elif operation == "WRITE":
+            print(operando1)
+            pc = pc+1
+        elif operation == "READ":
+            print(operando1)
+            pc = pc+1
         else:
             pc += 1
-print("Tabla de simbolos:")
+print("\nTabla de simbolos Final:")
 for key in tabla_de_simbolos:
     print(key, ' : ', tabla_de_simbolos[key])       
 compilador.exit("\nCorrectly Execution :D")
