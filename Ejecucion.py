@@ -17,7 +17,7 @@ Simbol_Index = 0
 Append_Flag = 1     # Bandera para verificar si es necesario volverlo a meter a la pila de operandos, 1 - SI SE METE, 0 - NO SE METE
 pila_operandos = [] # Arreglo de operandos
 aux_for = 0         # Nos funciona para guardar la variable a incrementar en el ciclo for
-
+flag_funciones = False # Verificamos si existen funciones
 # Ejecucion
 pc = 0
 
@@ -49,15 +49,18 @@ def p_main(p):
     main : mainBegin estatutos RBRK
     '''
                                                           # main(){ estatutos }
-    #######            
-    LittleTools.endProgram()          # END PROGRAM
+    #######     
+    if flag_funciones == 1:     
+        LittleTools.endProgram()          # END PROGRAM
 
 def p_mainBegin(p):
     '''
     mainBegin : MAIN LPAR RPAR LBRK
     '''
+    global flag_funciones
     posicionMain = LittleTools.contador_cuadruplos
-    LittleTools.fill_functionsCuadruplos_main(posicionMain)  
+    if flag_funciones == 1:
+        LittleTools.fill_functionsCuadruplos_main(posicionMain)  
     
 def p_estatutos(p):
     '''
@@ -511,9 +514,12 @@ def p_func_dec(p):
     dec_func : dec_func_init dec_func_end RBRK
     ''' 
                                                           # Sintaxis de la estructura de una funcion ID(){ estatutos }
+    global flag_funciones
     #genermos cuadruplos
     #pila_operandos.pop()
     LittleTools.genCuadruplo_dec_func()
+    flag_funciones = True               # Activamos flag
+
 def p_func_end(p):
     '''
     dec_func_end : LBRK estatutos
@@ -534,8 +540,6 @@ def p_func_int(p):
         Simbol_Index = LittleTools.updateSimbolTable(simbolo,tipo,tabla_de_simbolos,Simbol_Index)
         # Generamos su cuadruplo
         LittleTools.genCuadruploinit_dec_func(simbolo)
-
-
 
 #   DEFINICION DE EMPTY     #
 def p_empty(p):
