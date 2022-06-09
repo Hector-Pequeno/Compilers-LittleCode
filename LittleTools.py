@@ -5,6 +5,8 @@ pila_saltos = [] # Almacenamos los saltos del programa
 pila_saltos_funciones = [] # Almacena los saltos que deben ser ejecutados para revisar funciones
 pila_funciones = {} # Auxiliar, no tabla de simbolos
 flag_func = True    # flag que identifica la primera funcion que nos llevara a el MAIN
+pila_saltos_funciones_aux = [] # Contiene las direcciones de retorno de los call
+pila_end_procedure = [] # Contiene las direcciones de donde saltamos de los modulos
 
 def updateSimbolTable(simbolo,tipo,tabla_de_simbolos,Simbol_Index):
     tabla_de_simbolos[simbolo] = {} # Nos permite crear un diccionario de tipo NESTED
@@ -30,9 +32,7 @@ def genTemporales():
     temporal = sTemporal + str(temporalCounter) # Creamos un temporal tipo String
     temporales.append(temporal)                 # Añadimos al arreglo de temporales el string 
     temporalesCopy.append(temporal)             # Creamos una copia que no sera Pop() sus valores
-    print("Temporal #",temporalCounter)
     temporalCounter = temporalCounter + 1       # Aumentamos en 1 nuestro contador de temporales
-    print("se genero cuadruplo -> ", temporal)
 
 
 def genCuadruplos(simbolo,operation,pila_operandos):
@@ -43,7 +43,7 @@ def genCuadruplos(simbolo,operation,pila_operandos):
         if not simbolo in pila_operandos:                 # Verificamos si el simbolo ya habia sido declarado, para no meterlo en la pila mas veces
             pila_operandos.append(result)        
             cuadruplo = [operation, operand1,None, result] # Armamos el cuadruplo
-            print("Cuadruplo -> ",cuadruplo)              # Imprimimos el cuadruplo
+            #print("Cuadruplo -> ",cuadruplo)              # Imprimimos el cuadruplo
             pila_cuadruplos.append(cuadruplo)
             contador_cuadruplos = contador_cuadruplos + 1
             #print(pila_operandos)
@@ -145,13 +145,21 @@ def genCuadruplos_endfor():
     contador_cuadruplos = contador_cuadruplos + 1 # Aumentamos el contador de cuadruplos
     pila_saltos.append(salto)
     
-def genCuadruplos_endingfor(aux_for):
-    global contador_cuadruplos
-    # Generemos incremento por default del ciclo For
-    cuadruplo = ["+",aux_for,None,aux_for]
-    pila_cuadruplos.append(cuadruplo)
 
-    contador_cuadruplos = contador_cuadruplos + 1
+def genCuadruplos_plus_for(aux_for,operation,pila_operandos):
+    global contador_cuadruplos
+    #operand2 = pila_operandos.pop()
+    #operand1 = pila_operandos.pop()
+    #genTemporales()                                     # Generamos un temporal
+    #result = temporales.pop()     
+    #pila_operandos.append(result)
+    cuadruplo = [operation, aux_for, 1, aux_for] # Armamos el cuadruplo
+    #print("Cuadruplo -> ",cuadruplo)                    # Imprimimos el cuadruplo
+    pila_cuadruplos.append(cuadruplo)
+    contador_cuadruplos = contador_cuadruplos + 1   
+
+def genCuadruplos_endingfor():
+    global contador_cuadruplos
     salto = pila_saltos.pop()
     pila_cuadruplos[salto][3] = contador_cuadruplos
 
@@ -208,17 +216,23 @@ def genCuadruplo_dec_func():
     global contador_cuadruplos
     pila_saltos_funciones.append(contador_cuadruplos)
     cuadruplo = ["Endprocedure",None,None,None] # Aun falta Llenar su espacio de destino de Main
+    pila_end_procedure.append(contador_cuadruplos)
     pila_cuadruplos.append(cuadruplo)
     contador_cuadruplos = contador_cuadruplos + 1
     
 def fill_functionsCuadruplos_main(posicionMain):
     pila_cuadruplos[pila_saltos_funciones[0]][3] = posicionMain # Actualizamos el valor con la posicion del main
 
-def fill_functionsCuadruplos(posicionLlamado):
-    # Llenamos las demas llamadas a funcion
-    for x in range (1,len(pila_saltos_funciones)):
-        if(pila_cuadruplos[pila_saltos_funciones[x]][3] == None):
-            pila_cuadruplos[pila_saltos_funciones[x]][3] = posicionLlamado # Actualizamos el valor con la posicion del main
+def fill_functionsCuadruplos():
+    # Llenamos las llamadas a funcion
+        #for x in range (len(pila_end_procedure)):
+        valuemodif = pila_saltos_funciones_aux.pop()
+        cuadMod = pila_end_procedure[0]
+        pila_end_procedure.pop(0)
+        pila_cuadruplos[cuadMod][3] = valuemodif + 1 # Actualizamos el valor con la posicion del main
+
+
+
     
 def gen_callCuadruplo(simbolo):
     global contador_cuadruplos
@@ -226,6 +240,8 @@ def gen_callCuadruplo(simbolo):
     Posicion = pila_funciones[simbolo]["Salto"] # Guardamos la posicion de su cuadruplo
     cuadruplo = ["CALL",None,None,Posicion]
     pila_cuadruplos.append(cuadruplo)
+    pila_saltos_funciones.append(contador_cuadruplos)
+    pila_saltos_funciones_aux.append(contador_cuadruplos)
     contador_cuadruplos = contador_cuadruplos + 1
 
 def endProgram():
