@@ -558,8 +558,9 @@ def p_error(p):
                                                           # Indica donde se ecuentra un error de sintaxis
 
 parser = yacc.yacc()
+File_name = myLexer.program_file
 try:
-    with open("ejecucion_VS_if.txt",  encoding="utf8") as f:
+    with open(File_name,  encoding="utf8") as f:
         file = f.read()
     parser.parse(file)
 except EOFError:
@@ -670,12 +671,8 @@ while pc < len(cuadruplos_Finales):
                     Simbol_Index = Simbol_Index + 1
                     pc += 1
             else:
-                if (not cuadruplo_actual[1] in cuadruplo_actual)and(not cuadruplo_actual[1] in cuadruplo_actual)and(not isinstance(cuadruplo_actual[1], int))and(not isinstance(cuadruplo_actual[1], float)):
-                    compilador.exit(f"La variable {cuadruplo_actual} no ha sido declarada")
-                else:
                     tabla_de_simbolos[resultado]["Value"] = operando1
                     pc += 1
-                    
         elif operation == "+":
             tabla_de_simbolos[resultado]["Value"] = operando1 + operando2
             pc = pc + 1
@@ -698,7 +695,6 @@ while pc < len(cuadruplos_Finales):
             print(operando1)
             pc = pc+1
         elif operation == "READ":
-            print(operando1)
             pc = pc+1
         else:
             pc += 1
