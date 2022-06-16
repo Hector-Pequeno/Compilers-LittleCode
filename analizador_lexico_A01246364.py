@@ -9,25 +9,27 @@
 # -----------------------------------------------------------------------------
 import ply.lex as lex
 #import ply.yacc as yacc
-
-Programa = open('pruebacuadruplos.txt','r') 
+program_file = "Programa3_VS.txt"
+Program = open(program_file,'r') 
 
 reserved = [
     'INT', 'FLT','STRING','MAIN',
     'IF', 'WHILE','ENDWHILE', 
-    #'DO', 
     'FOR','ENDIF', 'TO',
     'THEN', 'ENDFOR','WRITE', 'READ','ELSE',
+    'ROOT',                                                 # Raiz cuadrada
+
 ]
 tokens = [
     'ID',                                                   # Identificadores 
     'INTV', 'FLTV', 'STRINGV',                              # Tipos de datos
     'PLUS', 'MINUS', 'DIVIDE', 'TIMES',                     # Operadores
     'LPAR', 'RPAR', 'LCAS', 'RCAS', 'LBRK', 'RBRK',         # Parentesis
-    'SEMICOLON', 'DOUBLEPOINT',                             # Puntuaciones
+    'SEMICOLON', 'DOUBLEPOINT', 'COMA',                     # Puntuaciones
     'GT', 'LT', 'GTEQ', 'LTEQ', 'EQUAL', 'NOT','NOTEQ',     # Comparaciones
     'AND', 'OR',                                            # Logicos  
     'ASSIGN',                                               # Asignacion
+    'POWER',                                                # Potencia
 ] 
 tokens = tokens + reserved
 
@@ -46,7 +48,7 @@ t_PLUS = r'\+'
 t_MINUS = r'\-'
 t_DIVIDE = r'\/'
 t_TIMES = r'\*'
-#t_POWER = r'\^'
+t_POWER = r'\^'
 t_LPAR = r'\('
 t_RPAR = r'\)'
 t_LCAS = r'\['
@@ -55,10 +57,11 @@ t_LBRK = r'\{'
 t_RBRK = r'\}'
 t_DOUBLEPOINT = r'\:'
 t_SEMICOLON = r'\;'
+#t_FACTORIAL = r'\!'
 
+#t_COMA = r'\,'
 # Ignored characters
-t_ignore = r' '
-
+t_ignore = ' \t'
 # Tipos de datos
 def t_ID(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
@@ -68,6 +71,12 @@ def t_ID(t):
     else:
         t.type = 'ID'
     return t    # Return token object
+
+def t_ROOT(t):
+    r'ROOT'
+    t.type = 'ROOT'
+    return t
+
 
 def t_STRING(t):
     r'STRING'
@@ -179,11 +188,11 @@ def t_error(t):
     
 # Build the lexer
 lexer = lex.lex()
-lexer.input(Programa.read())
+#lexer.input(Program.read())
 #while True:
 #    tok = lexer.token()
 #    print(tok)
 #    if not tok: 
 #        break
-#Programa.close()
+#Program.close()
 #print(tok)
