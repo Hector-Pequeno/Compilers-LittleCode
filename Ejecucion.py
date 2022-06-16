@@ -2,6 +2,7 @@ import analizador_lexico_A01246364 as myLexer
 import LittleTools
 import ply.yacc as yacc
 import sys as compilador
+import math
 
 # Obtenemos los tokens
 tokens = myLexer.tokens
@@ -70,9 +71,9 @@ def p_estatutos(p):
               | estatutos act_Arr 
               | estatutos f_write 
               | estatutos f_read  
-              | estatutos e_if    
-              | estatutos e_while 
-              | estatutos e_for   
+              | estatutos e_if    estatutos
+              | estatutos e_while estatutos
+              | estatutos e_for   estatutos
               | estatutos c_func  
               | estatutos log_exp SEMICOLON
               | empty
@@ -114,17 +115,24 @@ def p_estatuto_if_second(p):
 #   DECLARACION ESTATUTOS DO WHILE    #
 def p_estatuto_while(p):
     '''
-    e_while : first_while estatutos second_while
+    e_while : first_while do estatutos second_while
     '''
     LittleTools.genCuadruplos_endingwhile()
 
 
 def p_estatuto_first_while(p):
     '''
-    first_while : WHILE LPAR log_exp RPAR THEN  
+    first_while : WHILE LPAR log_exp_aux RPAR THEN  
     '''
+
     LittleTools.genCuadruplos_while(pila_operandos)
     
+def p_log_exp_aux(p):
+    '''
+    log_exp_aux : log_exp
+
+    '''
+    LittleTools.pila_saltos.append(LittleTools.contador_cuadruplos)
 
 def p_estatuto_second_while(p):
     '''
@@ -132,7 +140,11 @@ def p_estatuto_second_while(p):
     '''
     LittleTools.genCuadruplos_whilethen()
 
-
+def p_estatuto_do_empty(p):
+    '''
+    do : 
+    '''
+    LittleTools.genCuadruplos_do_while(pila_operandos)
 #   DECLARACION ESTATUTOS   FOR    #
 def p_estatuto_for(p):
     '''
@@ -219,7 +231,7 @@ def p_dec_Var_woI(p): # Variable sin inicializar
 def p_act_Var(p):
     '''
     act_Var : ID ASSIGN expression SEMICOLON
-            | ID ASSIGN f_read
+            | ID ASSIGN f_read 
     '''
                                                           # NOMBRE_VAR = V_int/V_string/V_float/variable ;
     simbolo = p[1] # Obtenemos el simbolo
@@ -355,13 +367,25 @@ def p_read(p):
                                                           # READ(ID/V_string/V_int,V_float)
     simbolo = p[3]
     pila_operandos.append(simbolo)
-    if not simbolo in tabla_de_simbolos:
-        compilador.exit(f"{simbolo} is not declared!")
-    else:
+    # if not simbolo in tabla_de_simbolos:
+    #     compilador.exit(f"{simbolo} is not declared!")
+    # else:
         # Genereamos cuadruplo
-        LittleTools.genCuadruplos(simbolo,"READ",pila_operandos)
+    LittleTools.genCuadruplos(simbolo,"READ",pila_operandos)
 
 # Operaciones aritmeticas
+def p_potencia_aritmetica(p):
+    '''
+    expression : expression POWER expression 
+    '''
+    LittleTools.genCuadruplos(DUMMY,"^",pila_operandos)
+
+# def p_potencia_aritmetica(p):
+#     '''
+#     expression : expression FACTORIAL expression 
+#     '''
+#     LittleTools.genCuadruplos(DUMMY,"!",pila_operandos)
+
 def p_suma_aritmetica(p):
     '''
     expression : expression PLUS expression 
@@ -598,106 +622,125 @@ while pc < len(cuadruplos_Finales):
     operando2 = cuadruplos_Finales[pc][2]       # Obtenemos segundo operando
     resultado = cuadruplos_Finales[pc][3]       # Obtenemos donde se asigna el resultado
     # Verificamos si operando1 es una variable/temporal o una constante:
-    if(operando1 in tabla_de_simbolos):
-        if("Value" in tabla_de_simbolos[operando1]):          # Verificamos si existe un valor para la variable
-            operando1 = tabla_de_simbolos[operando1]["Value"] # Obtenemos su valor
-        else:
-            compilador.exit("Variable sin inicializar")
-    elif(operando1 in temporalesCopia):                       # Verificamos si el operando es un temporal
-        fNum_operamdo1 = int(operando1[1])                    # Obtenemos la parte numerica del temporal
-        operando1 = resTemporales[fNum_operamdo1-1]           # Guardamos en el operando 1 el resultado almacenado en resTemporados (indice correspondiente)
-
-    # Verificamos si operando1 es una variable/temporal o una constante:
-    if(operando2 in tabla_de_simbolos):                       # Se verifica a op2 como simbolo
-        if("Value" in tabla_de_simbolos[operando2]):          # Verificamos si existe un valor para la variable
-            operando2 = tabla_de_simbolos[operando2]["Value"] # Obtenemos su valor
-        else:
-            compilador.exit("Variable sin inicializar")
-    elif(operando2 in temporalesCopia):                       # Verificamos si el operando es un temporal
-        fNum_operamdo2 = int(operando2[1])                    # Obtenemos la parte numerica del temporal
-        operando2 = resTemporales[fNum_operamdo2-1]           # Guardamos en el operando 1 el resultado almacenado en resTemporados (indice correspondiente)
-    
-    # Verificamos si el resultado es un temporal
-    if(resultado in temporalesCopia):
-        numTemporal = resultado[1]# Obtenemos el indice de temporal
-        # Realizamos Operacion y guardamos en el numero que obtenemos del numTemporal[0] en el arreglo de resultados de temporales
-        if operation == "=": 
-            resTemporales[int(numTemporal)] = operando1
-            pc += 1
-        elif operation == "+":
-            resTemporales[int(numTemporal)-1] = (operando1 + operando2)
-            pc += 1
-        elif operation == "-":
-            resTemporales[int(numTemporal)-1] = (operando1 - operando2)
-            pc += 1
-        elif operation == "*":
-            resTemporales[int(numTemporal)-1] = (operando1 * operando2)
-            pc += 1
-        elif operation == "/":
-            resTemporales[int(numTemporal)-1] = (operando1 / operando2)
-            pc += 1        
-        elif operation == "==":
-            resTemporales[int(numTemporal)-1] = (operando1 == operando2)
-            pc += 1
-        elif operation == ">":
-            resTemporales[int(numTemporal)-1] = (operando1 > operando2)
-            pc += 1
-        elif operation == "<":
-            resTemporales[int(numTemporal)-1] = (operando1 < operando2)
-            pc += 1
-        elif operation == ">=":
-            resTemporales[int(numTemporal)-1] = (operando1 >= operando2)
-            pc += 1
-        elif operation == "<=":
-            resTemporales[int(numTemporal)-1] = (operando1 <= operando2)
-            pc += 1
-        elif operation == "&":
-            resTemporales[int(numTemporal)-1] = (operando1 and operando2)
-            pc += 1
-        elif operation == "|":
-            resTemporales[int(numTemporal)-1] = (operando1 or operando2)
-            pc += 1
-#########
+    if(operation == "READ"):
+        inp =input()
+        #print("Operando1 ->",operando1)
+        #print("Tabla de simbolos ->",tabla_de_simbolos)
+        tabla_de_simbolos[operando1]["Value"] = int(inp)
+        print("Input received:",inp)
+        print("tabla de simbolos ",tabla_de_simbolos)
+        pc = pc+1
     else:
-        if operation == "=":
-            if (operando2 != None):
-                if resultado in tabla_de_simbolos : #Si esta ya fue declarada
-                    compilador.exit(f"La variable {resultado} ya fue declarada")
-                else: 
-                    tabla_de_simbolos[resultado] = {} #Creo un diccionario dentro
-                    tabla_de_simbolos[resultado]["Index"] = Simbol_Index 
-                    tabla_de_simbolos[resultado]["Type"]  = operando2
-                    tabla_de_simbolos[resultado]["Value"] = operando1
-                    Simbol_Index = Simbol_Index + 1
-                    pc += 1
+        if(operando1 in tabla_de_simbolos):
+            if("Value" in tabla_de_simbolos[operando1]):          # Verificamos si existe un valor para la variable
+                operando1 = tabla_de_simbolos[operando1]["Value"] # Obtenemos su valor
             else:
-                    tabla_de_simbolos[resultado]["Value"] = operando1
-                    pc += 1
-        elif operation == "+":
-            tabla_de_simbolos[resultado]["Value"] = operando1 + operando2
-            pc = pc + 1
-        elif operation == "GOTO":
-            pc = resultado
-        elif operation == "GOTOF":
-            if(operando1 == False):
+                compilador.exit("Variable sin inicializar")
+        elif(operando1 in temporalesCopia):                       # Verificamos si el operando es un temporal
+            fNum_operamdo1 = int(operando1[1])                    # Obtenemos la parte numerica del temporal
+            operando1 = resTemporales[fNum_operamdo1-1]           # Guardamos en el operando 1 el resultado almacenado en resTemporados (indice correspondiente)
+
+        # Verificamos si operando1 es una variable/temporal o una constante:
+        if(operando2 in tabla_de_simbolos):                       # Se verifica a op2 como simbolo
+            if("Value" in tabla_de_simbolos[operando2]):          # Verificamos si existe un valor para la variable
+                operando2 = tabla_de_simbolos[operando2]["Value"] # Obtenemos su valor
+            else:
+                compilador.exit("Variable sin inicializar")
+        elif(operando2 in temporalesCopia):                       # Verificamos si el operando es un temporal
+            fNum_operamdo2 = int(operando2[1])                    # Obtenemos la parte numerica del temporal
+            operando2 = resTemporales[fNum_operamdo2-1]           # Guardamos en el operando 1 el resultado almacenado en resTemporados (indice correspondiente)
+        
+        # Verificamos si el resultado es un temporal
+        if(resultado in temporalesCopia):
+            numTemporal = resultado[1]# Obtenemos el indice de temporal
+            # Realizamos Operacion y guardamos en el numero que obtenemos del numTemporal[0] en el arreglo de resultados de temporales
+            if operation == "=": 
+                resTemporales[int(numTemporal)] = operando1
+                pc += 1
+            elif operation == "^":
+                resTemporales[int(numTemporal)-1] = pow(operando1,operando2)
+                pc += 1
+            elif operation == "+":
+                resTemporales[int(numTemporal)-1] = (operando1 + operando2)
+                pc += 1
+            elif operation == "-":
+                resTemporales[int(numTemporal)-1] = (operando1 - operando2)
+                pc += 1
+            elif operation == "*":
+                resTemporales[int(numTemporal)-1] = (operando1 * operando2)
+                pc += 1
+            elif operation == "/":
+                resTemporales[int(numTemporal)-1] = (operando1 / operando2)
+                pc += 1        
+            elif operation == "==":
+                resTemporales[int(numTemporal)-1] = (operando1 == operando2)
+                pc += 1
+            elif operation == ">":
+                resTemporales[int(numTemporal)-1] = (operando1 > operando2)
+                pc += 1
+            elif operation == "<":
+                resTemporales[int(numTemporal)-1] = (operando1 < operando2)
+                pc += 1
+            elif operation == ">=":
+                resTemporales[int(numTemporal)-1] = (operando1 >= operando2)
+                pc += 1
+            elif operation == "<=":
+                resTemporales[int(numTemporal)-1] = (operando1 <= operando2)
+                pc += 1
+            elif operation == "&":
+                resTemporales[int(numTemporal)-1] = (operando1 and operando2)
+                pc += 1
+            elif operation == "|":
+                resTemporales[int(numTemporal)-1] = (operando1 or operando2)
+                pc += 1
+            elif operation == "!=":
+                resTemporales[int(numTemporal)-1] = (operando1 != operando2)
+                pc += 1
+    #########
+        else:
+            if operation == "=":
+                if (operando2 != None):
+                    if resultado in tabla_de_simbolos : #Si esta ya fue declarada
+                        compilador.exit(f"La variable {resultado} ya fue declarada")
+                    else: 
+                        tabla_de_simbolos[resultado] = {} #Creo un diccionario dentro
+                        tabla_de_simbolos[resultado]["Index"] = Simbol_Index 
+                        tabla_de_simbolos[resultado]["Type"]  = operando2
+                        tabla_de_simbolos[resultado]["Value"] = operando1
+                        Simbol_Index = Simbol_Index + 1
+                        pc += 1
+                else:
+                        tabla_de_simbolos[resultado]["Value"] = operando1
+                        pc += 1
+            elif operation == "+":
+                tabla_de_simbolos[resultado]["Value"] = operando1 + operando2
+                pc = pc + 1
+            elif operation == "GOTO":
                 pc = resultado
+            elif operation == "GOTOF":
+                if(operando1 == False):
+                    pc = resultado
+                else:
+                    pc += 1
+            elif operation == "Endprocedure":
+                pc = resultado
+            elif operation == "GOTOS":
+                pc = resultado
+            elif operation == "CALL":
+                pc = resultado
+            elif operation == "Endprogram":
+                pc = pc+1
+            elif operation == "WRITE":
+                print(operando1)
+                pc = pc+1
+            # elif operation == "READ":
+            #     inp =input()
+            #     print("Operando1 ->",operando1)
+            #     print("Tabla de simbolos ->",tabla_de_simbolos)
+            #     tabla_de_simbolos[operando1]["Value"] = inp
+            #     pc = pc+1
             else:
                 pc += 1
-        elif operation == "Endprocedure":
-            pc = resultado
-        elif operation == "GOTOS":
-            pc = resultado
-        elif operation == "CALL":
-            pc = resultado
-        elif operation == "Endprogram":
-            pc = pc+1
-        elif operation == "WRITE":
-            print(operando1)
-            pc = pc+1
-        elif operation == "READ":
-            pc = pc+1
-        else:
-            pc += 1
 print("\nTabla de simbolos Final:")
 for key in tabla_de_simbolos:
     print(key, ' : ', tabla_de_simbolos[key])       
