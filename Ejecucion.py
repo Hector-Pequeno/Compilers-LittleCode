@@ -2,7 +2,6 @@ import analizador_lexico_A01246364 as myLexer
 import LittleTools
 import ply.yacc as yacc
 import sys as compilador
-import math
 
 # Obtenemos los tokens
 tokens = myLexer.tokens
@@ -160,8 +159,13 @@ def p_estatuto_for_first(p):
     '''
     simbolo = p[6]
     pila_operandos.append(simbolo) # Agregamos operando a la pila 
+    if(simbolo in tabla_de_simbolos):
+        LittleTools.genCuadruplos(simbolo,"<",pila_operandos)
+        LittleTools.genCuadruplos_for(pila_operandos)     # Cuadruplos de entrada al IF (GOTOF)
     LittleTools.genCuadruplos(DUMMY,"<",pila_operandos)
     LittleTools.genCuadruplos_for(pila_operandos)     # Cuadruplos de entrada al IF (GOTOF)
+    
+
 
 
 def p_estatuto_for_second(p):
