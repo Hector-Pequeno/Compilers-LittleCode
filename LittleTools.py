@@ -157,11 +157,6 @@ def genCuadruplos_endfor():
 
 def genCuadruplos_plus_for(aux_for,operation,pila_operandos):
     global contador_cuadruplos
-    #operand2 = pila_operandos.pop()
-    #operand1 = pila_operandos.pop()
-    #genTemporales()                                     # Generamos un temporal
-    #result = temporales.pop()     
-    #pila_operandos.append(result)
     cuadruplo = [operation, aux_for, 1, aux_for] # Armamos el cuadruplo
     #print("Cuadruplo -> ",cuadruplo)                    # Imprimimos el cuadruplo
     pila_cuadruplos.append(cuadruplo)
