@@ -8,11 +8,17 @@ flag_func = True    # flag que identifica la primera funcion que nos llevara a e
 pila_saltos_funciones_aux = [] # Contiene las direcciones de retorno de los call
 pila_end_procedure = [] # Contiene las direcciones de donde saltamos de los modulos
 
+# Variables dimensionadas
+tamano_total = 0        # Contiene el tamaño total de espacio que necesita un arreglo
+
 def updateSimbolTable(simbolo,tipo,tabla_de_simbolos,Simbol_Index):
     tabla_de_simbolos[simbolo] = {} # Nos permite crear un diccionario de tipo NESTED
     tabla_de_simbolos[simbolo]["Index"] = Simbol_Index # Guardamos la posicion en la tabla de simbolos
     tabla_de_simbolos[simbolo]["Type"] = tipo # Guardamos en el diccionario el tipo de la variable
+    tabla_de_simbolos[simbolo]["Value"] = None
+
     Simbol_Index = Simbol_Index + 1 # Incrementamos la posicion de la tabla de simbolos
+
     return Simbol_Index
 
 def fillSimbolTable(simbolo,tabla_de_simbolos,valor):
@@ -25,13 +31,16 @@ temporalCounter = 1 # Variable para contar el numero de temporales (T1 inicial)
 sTemporal = "T"     # String constante para los temporales
 pila_cuadruplos = [] # Pila para guardar los cuadruplos generados 
 contador_cuadruplos = 0 # contador de los cuadruplos generados
-
+#temporalesCopyArr = []
 # Funcion que permite generar cuadruplos
+
 def genTemporales():
     global temporalCounter
     temporal = sTemporal + str(temporalCounter) # Creamos un temporal tipo String
     temporales.append(temporal)                 # Añadimos al arreglo de temporales el string 
     temporalesCopy.append(temporal)             # Creamos una copia que no sera Pop() sus valores
+    #temporalesCopyArr.append(temporal)             # Creamos una copia que no sera Pop() sus valores
+
     temporalCounter = temporalCounter + 1       # Aumentamos en 1 nuestro contador de temporales
 
 
@@ -53,21 +62,21 @@ def genCuadruplos(simbolo,operation,pila_operandos):
             pila_cuadruplos.append(cuadruplo)
             contador_cuadruplos = contador_cuadruplos + 1
 
-    elif(operation == "+" or operation == "-" or operation == "*" or operation == "/"): # Validacion Aritmetica
+    elif(operation == "+" or operation == "-" or operation == "*" or operation == "/" or operation == "^"): # Validacion Aritmetica
         operand2 = pila_operandos.pop()
         operand1 = pila_operandos.pop()
         genTemporales()                                     # Generamos un temporal
         result = temporales.pop()     
         pila_operandos.append(result)
         cuadruplo = [operation, operand1, operand2, result] # Armamos el cuadruplo
-        #print("Cuadruplo -> ",cuadruplo)                    # Imprimimos el cuadruplo
+        #print("Cuadruplo -> ",cuadruplo)                   # Imprimimos el cuadruplo
         pila_cuadruplos.append(cuadruplo)
         contador_cuadruplos = contador_cuadruplos + 1
         #print(pila_operandos)
     
     elif(operation == "&" or operation == "==" or operation == "!=" or 
         operation == ">" or operation == ">=" or operation == "<=" or
-        operation == "|" or operation == "!" or operation == "<"): # Validacion logica
+        operation == "|" or operation == "<"): # Validacion logica
 
         operand2 = pila_operandos.pop()
         operand1 = pila_operandos.pop()
@@ -92,7 +101,7 @@ def genCuadruplos(simbolo,operation,pila_operandos):
         #print("Cuadruplo -> ",cuadruplo)              # Imprimimos el cuadruplo
         pila_cuadruplos.append(cuadruplo)
         contador_cuadruplos = contador_cuadruplos + 1
-
+    
     else:
         print(operation)
         print("error detected! bad logic!!")
@@ -165,25 +174,56 @@ def genCuadruplos_endingfor():
 
 
 # FUNCIONES DO WHILE -TRADUCCION-
+def genCuadruplos_do_while(pila_operandos):
+    global contador_cuadruplos
+    resultado = pila_operandos.pop()
+    pila_saltos.append(contador_cuadruplos)
+    cuadruplo = ["GOTOF",resultado,None,None]
+    pila_cuadruplos.append(cuadruplo)
+    contador_cuadruplos = contador_cuadruplos + 1
+    print("PILA SE DALTOS DO_WHILE",pila_saltos)
+
 
 def genCuadruplos_while(pila_operandos):
     global contador_cuadruplos
-    pila_saltos.append(contador_cuadruplos) # Guardamos la posicion donde estamos actualmente y rellenar
-    result =  pila_operandos.pop() # recuperamos el resultado generado por la expresion de log_exp
-    cuadruplo = ["GOTOF",result,None,None]
-    pila_cuadruplos.append(cuadruplo)
-    contador_cuadruplos = contador_cuadruplos + 1
+    pila_saltos.append(contador_cuadruplos)
+    print("PILA SE DALTOS WHILE",pila_saltos)
+
+    #contador_cuadruplos = contador_cuadruplos + 1
+#     print("entro al while",pila_saltos)
+#     global contador_cuadruplos
+#     pila_saltos.append(contador_cuadruplos) # Guardamos la posicion donde estamos actualmente y rellenar
+#     result =  pila_operandos.pop() # recuperamos el resultado generado por la expresion de log_exp
+#     cuadruplo = ["GOTOF",result,None,None]
+#     pila_cuadruplos.append(cuadruplo)
+#     print("salto GOTOF -> ",pila_saltos)
+#     print(pila_saltos)
+#     contador_cuadruplos = contador_cuadruplos + 1
 
 
 def genCuadruplos_whilethen():
     global contador_cuadruplos
-    salto = pila_saltos.pop() # obtenemos donde saltamos y regresamos a donde hicimos su expresion
-    cuadruplo = ["GOTO",None,None,salto-1] # Generamos cuadruplo
-    pila_cuadruplos.append(cuadruplo) # Añadimos cuadruplo a nuestra pila
-    pila_saltos.append(contador_cuadruplos) # Mandamos a la pila nuestra ubicacion
-    contador_cuadruplos = contador_cuadruplos + 1 # actualizamos contador
-    pila_saltos.append(salto)
+    print("PILA SE DALTOS WHILETHE",pila_saltos)
+    f = pila_saltos.pop()
+    retorno = pila_saltos.pop()
+    cuadruplo = ["GOTO",None,None,retorno-1]
+    pila_cuadruplos.append(cuadruplo)
+    pila_cuadruplos[f][3] = contador_cuadruplos
+    contador_cuadruplos = contador_cuadruplos + 1
+#     global contador_cuadruplos
+#     salto = pila_saltos.pop() # obtenemos donde saltamos y regresamos a donde hicimos su expresion
+#     cuadruplo = ["GOTO",None,None,salto-1] # Generamos cuadruplo
+#     pila_cuadruplos.append(cuadruplo) # Añadimos cuadruplo a nuestra pila
+#     pila_saltos.append(contador_cuadruplos) # Mandamos a la pila nuestra ubicacion
+#     contador_cuadruplos = contador_cuadruplos + 1 # actualizamos contador
+#     pila_cuadruplos[salto][3] = contador_cuadruplos # completamos cuadruplo
 
+#     pila_saltos.append(salto)
+#     salto = pila_saltos.pop() # obtenemos la posición a rellenar
+#     print("salto GOTO -> ",pila_saltos)
+#     print(pila_saltos)
+#     pila_cuadruplos[salto][3] = contador_cuadruplos # completamos cuadruplo
+#     print("salio al while",pila_saltos)
 
 def genCuadruplos_endingwhile():
     global contador_cuadruplos
@@ -232,8 +272,6 @@ def fill_functionsCuadruplos():
         pila_cuadruplos[cuadMod][3] = valuemodif + 1 # Actualizamos el valor con la posicion del main
 
 
-
-    
 def gen_callCuadruplo(simbolo):
     global contador_cuadruplos
     # Lo buscamos en el diccionario de funciones
@@ -249,3 +287,87 @@ def endProgram():
     cuadruplo = ["Endprogram",None,None,None]
     pila_cuadruplos.append(cuadruplo)
     contador_cuadruplos = contador_cuadruplos + 1
+
+#   FUNCIONES PARA LOS ARREGLOS     #
+#   CUANDO SE DECLARAN INICIALMENTE #
+def genCuad_Arr1D(pila_operandos,simbolo,tipo,tabla_de_simbolos,Simbol_Index):
+
+    global contador_cuadruplos
+    Resultado_Indice = pila_operandos.pop()
+    print("Resultado indice ",Resultado_Indice)
+    cuadruplo = ["VER",Resultado_Indice,0,Resultado_Indice]
+    pila_cuadruplos.append(cuadruplo)
+    contador_cuadruplos = contador_cuadruplos + 1
+    #Actualizamos tabla de simbolos 1D:
+    tabla_de_simbolos[simbolo] = {} # Nos permite crear un diccionario de tipo NESTED
+    tabla_de_simbolos[simbolo]["Index"] = Simbol_Index # Guardamos la posicion en la tabla de simbolos
+    tabla_de_simbolos[simbolo]["Type"] = tipo # Guardamos en el diccionario el tipo de la variable
+    tabla_de_simbolos[simbolo]["Value"] = None
+    Simbol_Index = Simbol_Index + 1
+    return Simbol_Index
+    
+
+
+def createSpaceInMemory(simbolo,dimension1,dimension2,dimension3,memArreglos):
+    global tamano_total
+    tamano_total = dimension1*dimension2*dimension3    # Obtenemos el tamaño total de espacios a utilizar 
+    
+    print("Tamaño total -> ",tamano_total) 
+    for x in range(tamano_total):                         # Creamos el numero n de espacios en el arreglo
+        memArreglos.append(simbolo)                       # Simbolicamente agregamos su asignacion en memoria
+    #   Generamos Informacion en tabla de simbolos func updateSimbolTable_ARR, se llama desde el main
+
+def updateSimbolTable_ARR_1D(simbolo,tipo,tabla_de_simbolos,Simbol_Index,base,dimension1,dimension2,dimension3):
+    global tamano_total
+    base = Simbol_Index                                 # aumentamos la base al tamano_total + 1
+    lim_Inf = base                                      # Generamos nuestro limite inferior             
+    lim_Sup = Simbol_Index + tamano_total - 1           # Generamos nuestro limite superior
+    tabla_de_simbolos[simbolo] = {}                     # Nos permite crear un diccionario de tipo NESTED
+    tabla_de_simbolos[simbolo]["1D"] = dimension1       # Guardamos la posicion en la tabla de simbolos
+    tabla_de_simbolos[simbolo]["Type"] = tipo           # Guardamos en el diccionario el tipo de la variable
+    tabla_de_simbolos[simbolo]["Base"] = base           # Guardamos la posicion en la tabla de simbolos
+    tabla_de_simbolos[simbolo]["Lim_Inf"] = lim_Inf     # Guardamos la posicion en la tabla de simbolos
+    tabla_de_simbolos[simbolo]["Lim_sup"] = lim_Sup     # Guardamos la posicion en la tabla de simbolos
+    tabla_de_simbolos[simbolo]["M"] = tamano_total      # Guardamos la posicion en la tabla de simbolos
+    tabla_de_simbolos[simbolo]["Array"] = True
+    Simbol_Index = Simbol_Index + tamano_total    # Incrementamos la posicion de la tabla de simbolos
+    return Simbol_Index
+
+def updateSimbolTable_ARR_2D(simbolo,tipo,tabla_de_simbolos,Simbol_Index,base,dimension1, dimension2, dimension3):
+    global tamano_total
+    base = Simbol_Index                                 # aumentamos la base al tamano_total + 1
+    lim_Inf = base                                      # Generamos nuestro limite inferior             
+    lim_Sup = Simbol_Index + tamano_total - 1           # Generamos nuestro limite superior
+    tabla_de_simbolos[simbolo] = {}                     # Nos permite crear un diccionario de tipo NESTED
+    tabla_de_simbolos[simbolo]["1D"] = dimension1       # Guardamos la posicion en la tabla de simbolos
+    tabla_de_simbolos[simbolo]["2D"] = dimension2       # Guardamos la posicion en la tabla de simbolos
+    tabla_de_simbolos[simbolo]["Type"] = tipo           # Guardamos en el diccionario el tipo de la variable
+    tabla_de_simbolos[simbolo]["Base"] = base           # Guardamos la posicion en la tabla de simbolos
+    tabla_de_simbolos[simbolo]["Lim_Inf"] = lim_Inf     # Guardamos la posicion en la tabla de simbolos
+    tabla_de_simbolos[simbolo]["Lim_sup"] = lim_Sup     # Guardamos la posicion en la tabla de simbolos
+    tabla_de_simbolos[simbolo]["M"] = tamano_total      # Guardamos la posicion en la tabla de simbolos
+    tabla_de_simbolos[simbolo]["m1"] = dimension2*dimension3     # Guardamos la posicion en la tabla de simbolos 
+
+    tabla_de_simbolos[simbolo]["Array"] = True
+    Simbol_Index = Simbol_Index + tamano_total    # Incrementamos la posicion de la tabla de simbolos
+    return Simbol_Index
+
+def updateSimbolTable_ARR_3D(simbolo,tipo,tabla_de_simbolos,Simbol_Index,base,dimension1, dimension2, dimension3):
+    global tamano_total
+    base = Simbol_Index                                 # aumentamos la base al tamano_total + 1
+    lim_Inf = base                                      # Generamos nuestro limite inferior             
+    lim_Sup = Simbol_Index + tamano_total - 1           # Generamos nuestro limite superior
+    tabla_de_simbolos[simbolo] = {}                     # Nos permite crear un diccionario de tipo NESTED
+    tabla_de_simbolos[simbolo]["1D"] = dimension1       # Guardamos la posicion en la tabla de simbolos
+    tabla_de_simbolos[simbolo]["2D"] = dimension2       # Guardamos la posicion en la tabla de simbolos
+    tabla_de_simbolos[simbolo]["3D"] = dimension3       # Guardamos la posicion en la tabla de simbolos
+    tabla_de_simbolos[simbolo]["Type"] = tipo           # Guardamos en el diccionario el tipo de la variable
+    tabla_de_simbolos[simbolo]["Base"] = base           # Guardamos la posicion en la tabla de simbolos
+    tabla_de_simbolos[simbolo]["Lim_Inf"] = lim_Inf     # Guardamos la posicion en la tabla de simbolos
+    tabla_de_simbolos[simbolo]["Lim_sup"] = lim_Sup     # Guardamos la posicion en la tabla de simbolos
+    tabla_de_simbolos[simbolo]["M"] = tamano_total      # Guardamos la posicion en la tabla de simbolos
+    tabla_de_simbolos[simbolo]["m1"] = dimension2*dimension3     # Guardamos la posicion en la tabla de simbolos 
+    tabla_de_simbolos[simbolo]["m2"] = dimension3*1     # Guardamos la posicion en la tabla de simbolos 
+    tabla_de_simbolos[simbolo]["Array"] = True
+    Simbol_Index = Simbol_Index + tamano_total    # Incrementamos la posicion de la tabla de simbolos
+    return Simbol_Index
