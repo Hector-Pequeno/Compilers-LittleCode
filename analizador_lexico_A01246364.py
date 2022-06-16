@@ -9,7 +9,7 @@
 # -----------------------------------------------------------------------------
 import ply.lex as lex
 #import ply.yacc as yacc
-program_file = "Programa3_VS.txt"
+program_file = "varsDimensionadas.txt"
 Program = open(program_file,'r') 
 
 reserved = [
@@ -17,15 +17,13 @@ reserved = [
     'IF', 'WHILE','ENDWHILE', 
     'FOR','ENDIF', 'TO',
     'THEN', 'ENDFOR','WRITE', 'READ','ELSE',
-    'ROOT',                                                 # Raiz cuadrada
-
 ]
 tokens = [
     'ID',                                                   # Identificadores 
     'INTV', 'FLTV', 'STRINGV',                              # Tipos de datos
     'PLUS', 'MINUS', 'DIVIDE', 'TIMES',                     # Operadores
     'LPAR', 'RPAR', 'LCAS', 'RCAS', 'LBRK', 'RBRK',         # Parentesis
-    'SEMICOLON', 'DOUBLEPOINT', 'COMA',                     # Puntuaciones
+    'SEMICOLON', 'DOUBLEPOINT',                             # Puntuaciones
     'GT', 'LT', 'GTEQ', 'LTEQ', 'EQUAL', 'NOT','NOTEQ',     # Comparaciones
     'AND', 'OR',                                            # Logicos  
     'ASSIGN',                                               # Asignacion
@@ -72,10 +70,10 @@ def t_ID(t):
         t.type = 'ID'
     return t    # Return token object
 
-def t_ROOT(t):
-    r'ROOT'
-    t.type = 'ROOT'
-    return t
+# def t_ROOT(t):
+#     r'ROOT'
+#     t.type = 'ROOT'
+#     return t
 
 
 def t_STRING(t):
