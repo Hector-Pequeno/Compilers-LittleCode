@@ -95,6 +95,7 @@ def genCuadruplos(simbolo,operation,pila_operandos):
         #print("Cuadruplo -> ",cuadruplo)              # Imprimimos el cuadruplo
         pila_cuadruplos.append(cuadruplo)
         contador_cuadruplos = contador_cuadruplos + 1
+        
     elif(operation == "WRITE"):
         operand1 = pila_operandos.pop()
         cuadruplo = [operation, operand1,None, None] # Armamos el cuadruplo
